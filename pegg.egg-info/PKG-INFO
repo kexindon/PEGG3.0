@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: pegg
 Version: 2.1.0
 Summary: Prime Editing Guide Generator
@@ -10,3 +10,21 @@ Classifier: Programming Language :: Python :: 3.9
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 License-File: LICENSE
+Requires-Dist: Bio>=1.4.0
+Requires-Dist: cyvcf2==0.30.18
+Requires-Dist: matplotlib>=3.5.1
+Requires-Dist: mock>=4.0.3
+Requires-Dist: numpy>=1.21.5
+Requires-Dist: pandas>=1.4.2
+Requires-Dist: seaborn>=0.11.2
+Requires-Dist: setuptools>=61.2.0
+Requires-Dist: Sphinx>=4.4.0
+Requires-Dist: scikit-learn==1.1.1
+Requires-Dist: regex>=2023.8.8
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: home-page
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: summary

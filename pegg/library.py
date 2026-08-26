@@ -6,6 +6,8 @@ import Bio.Seq
 #import importlib
 from importlib.resources import files
 
+from . import bystander
+
 
 def mutation_aggregator(mutant_input, gene_name):    
     """
@@ -71,22 +73,12 @@ def neutral_substitutions(gene_name, chrom, strand, start_end_cds, chrom_dict):
     """
     
     
-    codons = []
-    for i in start_end_cds:
-        for k in range(i[0], i[1]+1):
-            codons.append(k)
+    #Codon positions in transcription order. Shared with the silent bystander
+    #module so that both derive the reading frame from one implementation; a
+    #codon split across an exon junction is handled correctly by the walk.
+    gene_codons = bystander.cds_codons(start_end_cds, strand)
 
-    gene_codons = []
-    if strand=='+':
-        for i in range(0,len(codons),3):
-            gene_codons.append([codons[i], codons[i+1], codons[i+2]])
 
-    elif strand=='-':
-        codons = codons[::-1]
-        for i in range(0,len(codons),3):
-            gene_codons.append([codons[i], codons[i+1], codons[i+2]])
-    
-    
     #-------------------creating df of codons  
     
     #loading in reference genome from peg engine module
