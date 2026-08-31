@@ -280,6 +280,61 @@ def test_codon_tables():
     print('  codon tables                        OK')
 
 
+def test_frame_source_from_row():
+    """Per-row frame resolution: the strand and CDS travel with the variant, so a
+    single run() call can mix transcripts. A row with no usable annotation must
+    resolve to nothing rather than to a guess."""
+    cds = [[100, 199], [300, 399]]
+
+    ok = {'transcript_strand': '-', 'start_end_cds': cds, 'cds_valid': True}
+    fmap, bounds, strand = by.frame_source_from_row(ok)
+    assert strand == '-'
+    assert fmap == by.cds_frame_map(cds, '-')
+    assert bounds == by.cds_boundaries(cds)
+
+    #a cache must not leak one transcript's frame into another
+    cache = {}
+    by.frame_source_from_row(ok, cache=cache)
+    other = {'transcript_strand': '+', 'start_end_cds': cds, 'cds_valid': True}
+    f2, _, s2 = by.frame_source_from_row(other, cache=cache)
+    assert s2 == '+'
+    assert f2 == by.cds_frame_map(cds, '+')
+    assert f2 != fmap, 'strand must change the frame map'
+    assert len(cache) == 2
+
+    #every flavour of missing annotation yields no frame, never a guess
+    import math
+    for bad in ({'transcript_strand': '-', 'start_end_cds': cds, 'cds_valid': False},
+                {'transcript_strand': None, 'start_end_cds': cds},
+                {'transcript_strand': '-', 'start_end_cds': None},
+                {'transcript_strand': float('nan'), 'start_end_cds': cds},
+                {'transcript_strand': '-', 'start_end_cds': float('nan')},
+                {'transcript_strand': '-', 'start_end_cds': []},
+                {}):
+        assert by.frame_source_from_row(bad) == (None, None, None), bad
+    print('  per-row frame source                OK')
+
+
+def test_attach_cds():
+    """attach_cds() puts the annotation on the table in the columns run() reads."""
+    import pandas as pd
+    df = pd.DataFrame({'Hugo_Symbol': ['TP53', 'TP53', 'NOPE']})
+    gene_cds = {'TP53': {'strand': '-', 'cds': [[100, 199]], 'valid': True}}
+    out = by.attach_cds(df, gene_cds)
+
+    assert list(out['transcript_strand']) == ['-', '-', None]
+    assert list(out['cds_valid']) == [True, True, False]
+    assert out['start_end_cds'][0] == [[100, 199]]
+    assert out['start_end_cds'][2] is None
+    #the unannotated row must resolve to no frame, so it gets ordinary pegRNAs
+    assert by.frame_source_from_row(out.iloc[2]) == (None, None, None)
+    #and the annotated one must resolve
+    assert by.frame_source_from_row(out.iloc[0])[2] == '-'
+    #input is not mutated
+    assert 'start_end_cds' not in df.columns
+    print('  attach_cds                          OK')
+
+
 if __name__ == '__main__':
     print('six input classes:')
     for label, ts, ps, ref_len, alt_len in CASES:
@@ -294,6 +349,8 @@ if __name__ == '__main__':
     test_max_candidates_caps()
     test_splice_and_cds_respected()
     test_codon_tables()
+    test_frame_source_from_row()
+    test_attach_cds()
 
     print()
     print('all tests passed')

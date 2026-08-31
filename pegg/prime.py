@@ -1553,9 +1553,9 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         RE_sites=None, polyT_threshold=4,
         proto_size=19, context_size = 120,
         before_proto_context=5, sensor_length=60, sensor_orientation = 'reverse-complement', sensor=True,
-        silent_bystander=False, silent_per_mut=2, transcript_strand=None,
-        start_end_cds=None, ORF_start=None, bystander_window_nt=5,
-        max_bystander_muts=2, splice_buffer=3, seed=None):
+        silent_bystander=False, silent_per_mut=2, ORF_start=None,
+        bystander_window_nt=5, max_bystander_muts=2, splice_buffer=3,
+        seed=None):
 
     """ 
     Master function for generating pegRNAs. Takes as input a dataframe containing mutations in one of the acceptable formats.
@@ -1663,10 +1663,12 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         bystander-carrying ones, distinguished by the has_silent_bystander
         column, so that users can filter to either set afterwards.
 
-        Requires reading frame information, which differs by input format:
-        'cBioPortal' needs start_end_cds + transcript_strand; 'WT_ALT' and
-        'PrimeDesign' need ORF_start, and the input sequence must be in frame.
-        See pegg.bystander for details.
+        Requires reading frame information, which differs by input format. For
+        'cBioPortal' input it is read per row from the 'start_end_cds' and
+        'transcript_strand' columns that bystander.cds_for_variants() attaches,
+        so one call can span several genes. 'WT_ALT' and 'PrimeDesign' carry no
+        genomic coordinates and instead need ORF_start, with the input sequence
+        in frame. See pegg.bystander for details.
 
     silent_per_mut
         *type = int*
@@ -1675,22 +1677,6 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         PAM site x RTT length x PBS length. Chosen at random from the viable
         options. Default = 2, so a pegRNA with bystanders available contributes
         three rows: itself, plus two bystander variants.
-
-    transcript_strand
-        *type = str or None*
-
-        '+' or '-'; the strand the transcript is on. Required for 'cBioPortal'
-        input when silent_bystander=True. Note this is independent of the strand
-        a given pegRNA's PAM falls on.
-
-    start_end_cds
-        *type = list or None*
-
-        A 2-d list containing the start/end locations of each region of the
-        coding sequence (CDS) for the gene's selected transcript, ordered in the
-        + strand orientation, 1-based and inclusive. Same format as used by
-        library.neutral_substitutions(). Required for 'cBioPortal' input when
-        silent_bystander=True.
 
     ORF_start
         *type = int or None*
@@ -1755,12 +1741,28 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
     boundaries = None
     rng = None
 
+    frame_cache = None
+
     if silent_bystander:
         from . import bystander as _bystander
 
-        frame_mode, frame_map, boundaries = _bystander.resolve_frame_source(
-            input_format, transcript_strand=transcript_strand,
-            start_end_cds=start_end_cds, ORF_start=ORF_start)
+        #'cBioPortal' input carries its reading frame per row, in the columns
+        #bystander.cds_for_variants() attaches, so that one call can span several
+        #genes -- each variant is designed against its own transcript. The other
+        #formats have no genomic coordinates and declare one frame for the call.
+        if input_format == 'cBioPortal':
+            frame_mode = 'cds'
+            frame_cache = {}
+            if 'start_end_cds' not in input_df.columns:
+                raise ValueError(
+                    "silent_bystander=True with input_format='cBioPortal' needs "
+                    "the reading frame annotation on the input table. Run\n"
+                    "    mutations, cds = bystander.cds_for_variants(mutations, db)\n"
+                    "first, which adds the 'start_end_cds' and 'transcript_strand' "
+                    "columns, or set silent_bystander=False.")
+        else:
+            frame_mode, frame_map, boundaries = _bystander.resolve_frame_source(
+                input_format, ORF_start=ORF_start)
 
         rng = np.random.default_rng(seed)
 
@@ -1792,10 +1794,20 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         if 'Chromosome' in val:
             mut.chrom = val['Chromosome']
 
-        #reading frame annotation, used only for silent bystander design
-        mut.transcript_strand = transcript_strand
-        mut.frame_map = frame_map
-        mut.cds_boundaries = boundaries
+        #reading frame annotation, used only for silent bystander design. For
+        #cBioPortal input it comes from this variant's own row, so genes with
+        #different transcripts (or none at all) can share a single run() call.
+        if frame_cache is not None:
+            row_map, row_bounds, row_strand = _bystander.frame_source_from_row(
+                val, cache=frame_cache)
+            mut.transcript_strand = row_strand
+            mut.frame_map = row_map
+            mut.cds_boundaries = row_bounds
+        else:
+            #'orf' mode: the frame comes from ORF_start and there is no strand
+            mut.transcript_strand = None
+            mut.frame_map = frame_map
+            mut.cds_boundaries = boundaries
 
         mut.PAM_idx_forward, mut.PAM_idx_rc = eligible_PAM_finder(mut, PAM, max(RTT_lengths), proto_size)
 

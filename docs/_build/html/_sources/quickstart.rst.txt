@@ -211,9 +211,7 @@ There are a whole host of design parameters for the pegRNAs and sensors that can
 
 - **silent_per_mut**: How many silent bystander designs to keep per pegRNA, i.e. per PAM site x RTT length x PBS length. Chosen at random from the viable options. Default = 2, so a pegRNA with bystanders available contributes three rows: itself, plus two bystander variants.
 
-- **transcript_strand**: '+' or '-'; the strand the transcript is on. Required for 'cBioPortal' input. Note this is independent of the strand a given pegRNA's PAM falls on.
-
-- **start_end_cds**: A 2-d list containing the start/end locations of each region of the coding sequence (CDS) for the gene's selected transcript, ordered in the + strand orientation, 1-based and inclusive. Required for 'cBioPortal' input.
+- For 'cBioPortal' input the reading frame is **not** a parameter. It is read per variant from the ``transcript_strand`` and ``start_end_cds`` columns that ``bystander.cds_for_variants()`` adds to the input table, so run that first (see below) and a single call then covers any number of genes.
 
 - **ORF_start**: 0, 1 or 2: the offset within the input sequence at which the reading frame begins. Required for 'WT_ALT' and 'PrimeDesign' input, in which case the input sequence must be entirely coding sequence.
 
@@ -239,8 +237,9 @@ restriction-site filtration all reflect the bystander mutations.
 Getting the reading frame
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For cBioPortal input, the CDS blocks and strand can be resolved from an annotation database. Each gene is designed
-against its **canonical transcript**, from a curated table bundled with PEGG:
+For cBioPortal input this is a **required first step**: a bystander is only silent with respect to a reading frame, so
+the frame has to be resolved from the gene's transcript and attached to the mutation table before ``run()`` is called.
+Each gene is designed against its **canonical transcript**, from a curated table bundled with PEGG:
 
 .. code-block:: python
 
@@ -265,33 +264,24 @@ to override particular genes, or ``tx_column='tx_id_h'`` to use transcript ids a
 Designing a library
 ~~~~~~~~~~~~~~~~~~~~~
 
-The reading frame belongs to a single transcript, so genes are designed one at a time and concatenated. Genes without
-a valid annotation still get ordinary pegRNAs, just no bystanders:
+``cds_for_variants()`` attaches the strand and CDS blocks to each row, and ``run()`` reads the reading frame from
+those columns per variant. A single call therefore covers a whole library, however many genes it spans -- each
+variant is designed against its own transcript, and variants with no valid annotation simply get ordinary pegRNAs:
 
 .. code-block:: python
 
-   import pandas as pd
-
-   run_params = dict(chrom_dict=chrom_dict, RTT_lengths=[10,15,20,25,30],
-                     PBS_lengths=[10,13,15], pegRNAs_per_mut=10, sensor=True)
-
-   parts = []
-   for gene, sub in df.groupby('Hugo_Symbol'):
-       ann = cds_lookup.get(gene)
-       if ann is not None and ann['valid']:
-           out = prime.run(sub.reset_index(drop=True), 'cBioPortal',
-                           silent_bystander=True, silent_per_mut=2,
-                           transcript_strand=ann['strand'],
-                           start_end_cds=ann['cds'], seed=0, **run_params)
-       else:
-           out = prime.run(sub.reset_index(drop=True), 'cBioPortal', **run_params)
-       parts.append(out)
-
-   peg_df = pd.concat(parts, ignore_index=True)
+   peg_df = prime.run(df, 'cBioPortal', chrom_dict=chrom_dict,
+                      silent_bystander=True, silent_per_mut=2, seed=0,
+                      RTT_lengths=[10,15,20,25,30], PBS_lengths=[10,13,15],
+                      pegRNAs_per_mut=10, sensor=True)
 
    # the two design sets
    plain     = peg_df[~peg_df['has_silent_bystander']]
    bystander_designs = peg_df[peg_df['has_silent_bystander']]
+
+The annotation columns must be present on the input table: passing a table that has not been through
+``cds_for_variants()`` with ``silent_bystander=True`` raises an error naming the missing column rather than
+silently designing without bystanders.
 
 Output columns
 ~~~~~~~~~~~~~~~~

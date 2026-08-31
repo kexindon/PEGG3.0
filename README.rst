@@ -92,22 +92,27 @@ Silent bystander mutations
 
 New in version 3.0, and off by default. Switch it on with ``silent_bystander=True``. The output then contains **both**
 the ordinary pegRNAs and the bystander-carrying ones, distinguished by the ``has_silent_bystander`` column, so either
-set can be filtered out afterwards:
+set can be filtered out afterwards.
+
+**For cBioPortal input, the mutation table must be prepared with** ``bystander.cds_for_variants()`` **first.** A
+bystander is only silent with respect to a reading frame, and that frame comes from the gene's transcript; this step
+resolves it and attaches it to each row. Passing an unprepared table raises an error naming the missing column, rather
+than quietly designing without bystanders:
 
 .. code-block:: python
 
    from pegg import bystander
 
-   # resolve each gene's canonical transcript and CDS from the mutation table
-   df, cds = bystander.cds_for_variants(mutations, db)
-   ann = cds['TP53']
+   # attach each gene's canonical transcript, strand and CDS blocks to the table
+   mutations, cds = bystander.cds_for_variants(mutations, db)
 
    peg_df = prime.run(mutations, 'cBioPortal', chrom_dict=chrom_dict,
                       silent_bystander=True,
-                      silent_per_mut=2,                    # bystander designs per pegRNA
-                      transcript_strand=ann['strand'],
-                      start_end_cds=ann['cds'],
-                      seed=0)                              # for a reproducible library
+                      silent_per_mut=2,      # bystander designs per pegRNA
+                      seed=0)                # for a reproducible library
+
+The reading frame is read from the table per variant, so one call covers a library of any number of genes -- each
+variant is designed against its own transcript. Variants with no usable annotation simply get ordinary pegRNAs.
 
 Further parameters: ``bystander_window_nt`` (how far from the edit silent mutations may be placed, default 5),
 ``max_bystander_muts`` (silent changes per pegRNA, default 2), and ``splice_buffer`` (minimum distance from an exon
@@ -122,10 +127,10 @@ A silent bystander can knock out the PAM as well as the intended edit can, so PA
 ``PAM_disrupted_edit`` (the intended edit alone, i.e. the version 2.0 meaning), and ``PAM_disrupted_by_bystander``.
 
 **Reading frame.** Because bystanders must be synonymous, this feature -- and only this feature -- needs to know the
-reading frame. For ``cBioPortal`` input, pass ``transcript_strand`` and ``start_end_cds``; ``cds_for_variants()``
-derives both from the canonical transcript, so they need not be typed by hand. For ``WT_ALT`` and ``PrimeDesign``
-input, pass ``ORF_start`` (0, 1 or 2) and make sure the input sequence is entirely coding. Variants whose frame cannot
-be established simply get no bystanders.
+reading frame. For ``cBioPortal`` input it is read per row from the columns ``cds_for_variants()`` attaches, so
+nothing has to be typed by hand. For ``WT_ALT`` and ``PrimeDesign`` input there are no genomic coordinates, so pass
+``ORF_start`` (0, 1 or 2) and make sure the input sequence is entirely coding. Variants whose frame cannot be
+established simply get no bystanders.
 
 All variant types are supported (SNP, ONP, INS, DEL, INDEL).
 
@@ -145,8 +150,10 @@ filtration all reflect the bystander mutations. All variant types are supported 
 table.
 
 **New parameters** on ``prime.run()``, all keyword, all appended, all inert when the feature is off:
-``silent_bystander``, ``silent_per_mut``, ``transcript_strand``, ``start_end_cds``, ``ORF_start``,
-``bystander_window_nt``, ``max_bystander_muts``, ``splice_buffer``, ``seed``.
+``silent_bystander``, ``silent_per_mut``, ``ORF_start``, ``bystander_window_nt``, ``max_bystander_muts``,
+``splice_buffer``, ``seed``. For ``cBioPortal`` input the reading frame is not passed as an argument at all: it is
+read per variant from the annotation columns that ``bystander.cds_for_variants()`` attaches to the input table, so a
+single call can span a whole library.
 
 **New output columns**, 7 added, none removed or renamed: ``has_silent_bystander``, ``n_bystander_muts``,
 ``bystander_positions``, ``bystander_dist_to_edit``, ``PAM_disrupted_edit``, ``PAM_disrupted_by_bystander``,

@@ -736,6 +736,106 @@ def resolve_frame_source(input_format, transcript_strand=None, start_end_cds=Non
     return 'orf', None, None
 
 
+def attach_cds(df, gene_cds, gene_column='Hugo_Symbol'):
+    """
+    Attaches a {gene: annotation} mapping -- as returned by cds_from_gtf() -- to a
+    variant table, so that prime.run() can resolve the reading frame per row and
+    design several genes in one call.
+
+    cds_for_variants() already does this as part of resolving transcripts from an
+    annotation database; this is the equivalent for an annotation dict built some
+    other way. Genes missing from the mapping get a null annotation and simply
+    receive no bystanders.
+
+    Parameters
+    -----------
+    df
+        *type = pd.DataFrame*
+
+        Variant table in cBioPortal format.
+
+    gene_cds
+        *type = dict*
+
+        Maps gene name to {'strand': ..., 'cds': [[start, end], ...]}, optionally
+        with 'valid'. This is what cds_from_gtf() returns.
+
+    gene_column
+        *type = str*
+
+        Column holding the gene name. Default = 'Hugo_Symbol'.
+    """
+    out = df.copy()
+    keys = list(out[gene_column])
+
+    def _get(k, field, default=None):
+        ann = gene_cds.get(k)
+        return ann.get(field, default) if isinstance(ann, dict) else default
+
+    out['transcript_strand'] = [_get(k, 'strand') for k in keys]
+    out['start_end_cds'] = [_get(k, 'cds') for k in keys]
+    out['cds_valid'] = [bool(_get(k, 'valid', True))
+                        if isinstance(gene_cds.get(k), dict) else False
+                        for k in keys]
+    return out
+
+
+def frame_source_from_row(row, cache=None):
+    """
+    Resolves the reading frame for a single variant from the annotation columns
+    that cds_for_variants() attaches to the table, returning
+    (frame_map, boundaries, transcript_strand) or (None, None, None) when the
+    row carries no usable annotation.
+
+    This is what lets one prime.run() call span several genes: the strand and CDS
+    blocks travel with each row rather than being fixed for the whole call, so a
+    variant is always designed against its own transcript's reading frame. A row
+    without annotation is not guessed at -- it simply gets no bystanders.
+
+    Parameters
+    -----------
+    row
+        *type = pd.Series or dict*
+
+        One variant, carrying 'start_end_cds' and 'transcript_strand' as added by
+        cds_for_variants(). 'cds_valid', when present and False, disables the row.
+
+    cache
+        *type = dict or None*
+
+        Optional dict for reusing the frame map between variants of the same
+        transcript, which is what makes a large table cheap to annotate.
+    """
+    strand = row.get('transcript_strand') if hasattr(row, 'get') else None
+    cds = row.get('start_end_cds') if hasattr(row, 'get') else None
+
+    #an explicit invalid flag means the CDS was found but unusable (not a
+    #multiple of 3, say); treat it the same as no annotation at all
+    valid = row.get('cds_valid') if hasattr(row, 'get') else None
+    if valid is not None and not bool(valid):
+        return None, None, None
+
+    if strand is None or cds is None:
+        return None, None, None
+    #a missing annotation arrives as NaN from pandas, not as None
+    if isinstance(strand, float) or isinstance(cds, float):
+        return None, None, None
+    if len(cds) == 0:
+        return None, None, None
+
+    key = (str(strand), tuple(tuple(b) for b in cds))
+    if cache is not None and key in cache:
+        return cache[key]
+
+    frame_map = cds_frame_map(cds, strand)
+    boundaries = cds_boundaries(cds)
+    resolved = (frame_map, boundaries, strand)
+
+    if cache is not None:
+        cache[key] = resolved
+    return resolved
+
+
 def frame_of_offset(offset, mode, genomic_positions=None, frame_map=None,
                     ORF_start=None):
     """
@@ -1168,12 +1268,8 @@ def add_cds_to_variants(df, db, tx_column='tx_id_h', gene_column=None):
         df, df_fail = h2m.get_tx_batch(df, species='h', ver=37)
         df, cds_lookup = bystander.add_cds_to_variants(df, db_h)
 
-        for tx, sub in df.groupby('tx_id_h'):
-            ann = cds_lookup[tx]
-            peg = prime.run(sub, 'cBioPortal', chrom_dict=chrom_dict,
-                            silent_bystander=True,
-                            transcript_strand=ann['strand'],
-                            start_end_cds=ann['cds'], ...)
+        peg = prime.run(df, 'cBioPortal', chrom_dict=chrom_dict,
+                        silent_bystander=True, seed=0)
 
     Parameters
     -----------
@@ -1219,6 +1315,11 @@ def add_cds_to_variants(df, db, tx_column='tx_id_h', gene_column=None):
     out['cds_n_codons'] = [
         cds_lookup[t]['n_codons'] if t in cds_lookup else None
         for t in out[tx_column]]
+    #the CDS blocks travel with the row, so prime.run() can resolve the reading
+    #frame per variant and a single call can span transcripts
+    out['start_end_cds'] = [
+        cds_lookup[t]['cds'] if t in cds_lookup else None
+        for t in out[tx_column]]
 
     #say plainly which variants will and will not get bystanders
     n_ok = int(out['cds_valid'].sum())
@@ -1261,24 +1362,25 @@ def cds_for_variants(df, db, gene_column='Hugo_Symbol', tx_column=None,
     gene with transcript_ids, or use ids already in the table with tx_column.
 
     The returned dataframe gains 'transcript_id', 'transcript_strand',
-    'cds_valid' and 'cds_n_codons'; cds_lookup maps each gene to its CDS blocks.
+    'start_end_cds', 'cds_valid' and 'cds_n_codons'; cds_lookup maps each gene to
+    its CDS blocks. Because the strand and CDS blocks travel with each row,
+    prime.run() can take the annotated table directly and design several genes in
+    one call.
     Genes that cannot be resolved are reported and simply get no bystanders.
 
     If a transcript id column is already present -- for instance because
     h2m.get_tx_batch() was run first -- pass tx_column to use those ids instead
     of choosing per gene.
 
-    Typical use::
+    Typical use -- one call, any number of genes::
 
-        df, cds_lookup = bystander.cds_for_variants(mutations, db)
+        mutations, cds_lookup = bystander.cds_for_variants(mutations, db)
 
-        for gene, sub in df.groupby('Hugo_Symbol'):
-            ann = cds_lookup.get(gene)
-            if ann is not None and ann['valid']:
-                peg = prime.run(sub.reset_index(drop=True), 'cBioPortal',
-                                silent_bystander=True,
-                                transcript_strand=ann['strand'],
-                                start_end_cds=ann['cds'], ...)
+        peg_df = prime.run(mutations, 'cBioPortal', chrom_dict=chrom_dict,
+                           silent_bystander=True, seed=0)
+
+    Variants whose gene could not be resolved keep a null annotation and simply
+    get ordinary pegRNAs, so a mixed table is fine.
 
     Parameters
     -----------
@@ -1376,6 +1478,10 @@ def cds_for_variants(df, db, gene_column='Hugo_Symbol', tx_column=None,
                         for k in out[key_column]]
     out['cds_n_codons'] = [lookup[k]['n_codons'] if k in lookup else None
                            for k in out[key_column]]
+    #the CDS blocks themselves travel with the row, so that prime.run() can
+    #resolve the reading frame per variant and a single call can span genes
+    out['start_end_cds'] = [lookup[k]['cds'] if k in lookup else None
+                            for k in out[key_column]]
 
     if verbose:
         n_ok = int(out['cds_valid'].sum())
