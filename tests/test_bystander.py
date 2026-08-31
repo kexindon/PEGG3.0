@@ -335,6 +335,73 @@ def test_attach_cds():
     print('  attach_cds                          OK')
 
 
+def test_exon_confinement():
+    """A bystander must fall in the same exon as the edit.
+
+    An RTT is one contiguous stretch of genomic DNA, so it cannot reach across an
+    intron. Splice-buffer distance does not catch this on its own: two positions
+    can each sit well inside their own exon and still be separated by an intron.
+    """
+    exons = [[1000, 1029], [1530, 1559]]          # 30 nt each, 500 nt intron
+    frame_map = by.cds_frame_map(exons, '+')
+    bounds = by.cds_boundaries(exons)
+    positions_all = by.cds_positions(exons, '+')
+
+    #an RTT straddling the junction: 12 nt of exon 1, then 12 nt of exon 2
+    rtt_positions = positions_all[18:30] + positions_all[30:42]
+    RTT = 'ATGGCTAGCACCGGTATGCTAGCA'
+    left = 10                                      # edit 2 nt from exon 1's end
+
+    def run(exon_blocks):
+        return by.silent_bystanders(
+            RTT, left, 1, 1, '+', '+', 0,
+            RTT_genomic_positions=rtt_positions,
+            frame_map=frame_map, boundaries=bounds,
+            window_nt=9, max_muts=1, max_candidates=None,
+            splice_buffer=0,        # isolate confinement from the splice buffer
+            exon_blocks=exon_blocks)
+
+    edit_genomic = rtt_positions[left]
+    lo, hi = next((s, e) for s, e in exons if s <= edit_genomic <= e)
+
+    def cross_exon(options):
+        return sum(1 for o in options for p in o['positions']
+                   if not (lo <= rtt_positions[p] <= hi))
+
+    without = run(None)
+    with_ = run(exons)
+
+    #the bug is real: without confinement some options land in the next exon
+    assert cross_exon(without) > 0, 'test is not exercising the junction'
+    assert cross_exon(with_) == 0, 'bystander placed outside the edit\'s exon'
+    assert len(with_) > 0, 'confinement should not remove every option here'
+    print('  exon confinement                    OK (%d/%d cross-exon removed)'
+          % (cross_exon(without), len(without)))
+
+
+def test_exon_confinement_at_edge():
+    """An edit right at an exon edge yields no bystanders rather than reaching
+    into the neighbouring exon."""
+    exons = [[1000, 1005], [1530, 1559]]          # tiny first exon
+    frame_map = by.cds_frame_map(exons, '+')
+    positions_all = by.cds_positions(exons, '+')
+    rtt_positions = positions_all[:6] + positions_all[6:18]
+    RTT = 'ATGGCTAGCACCGGTATGCT'[:len(rtt_positions)]
+
+    options = by.silent_bystanders(
+        RTT, 5, 1, 1, '+', '+', 0,
+        RTT_genomic_positions=rtt_positions,
+        frame_map=frame_map, boundaries=by.cds_boundaries(exons),
+        window_nt=9, max_muts=1, max_candidates=None, splice_buffer=0,
+        exon_blocks=exons)
+
+    lo, hi = 1000, 1005
+    for o in options:
+        for p in o['positions']:
+            assert lo <= rtt_positions[p] <= hi, 'escaped the edit exon'
+    print('  exon confinement at an edge         OK (%d options)' % len(options))
+
+
 if __name__ == '__main__':
     print('six input classes:')
     for label, ts, ps, ref_len, alt_len in CASES:
@@ -351,6 +418,8 @@ if __name__ == '__main__':
     test_codon_tables()
     test_frame_source_from_row()
     test_attach_cds()
+    test_exon_confinement()
+    test_exon_confinement_at_edge()
 
     print()
     print('all tests passed')

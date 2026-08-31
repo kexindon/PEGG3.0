@@ -341,11 +341,48 @@ def reverse_frame_anchor(frame_of_RTT_start, RTT_length):
     return (frame_of_RTT_start - (RTT_length - 1)) % 3
 
 
+def _exon_window(RTT_genomic_positions, exon_blocks, anchor_lo, anchor_hi,
+                 to_work, from_work, same_strand, L):
+    """
+    Returns the (lo, hi) half-open work_seq interval covered by the exon that
+    contains the edit, or (0, L) when the edit's exon cannot be identified.
+
+    A pegRNA's RTT is one contiguous stretch of genomic DNA, so a silent
+    bystander placed in a different exon from the edit does not describe a real
+    molecule -- the intron between them is not in the RTT. This clips the search
+    window to the edit's own exon so only reachable positions are considered.
+    """
+    #genomic position of the edit itself, via the first base of the edit anchor
+    edit_work = anchor_lo if same_strand else to_work(anchor_hi - 1)
+    edit_index = from_work(edit_work)
+    if not (0 <= edit_index < len(RTT_genomic_positions)):
+        return 0, L
+    edit_genomic = RTT_genomic_positions[edit_index]
+
+    exon = None
+    for start, end in exon_blocks:
+        if start <= edit_genomic <= end:
+            exon = (start, end)
+            break
+    if exon is None:
+        #the edit is not in any supplied exon (intronic, or a UTR); leave the
+        #window alone rather than silently forbidding everything
+        return 0, L
+
+    #every work_seq offset whose genomic position falls in that same exon
+    offsets = [i for i in range(L)
+               if 0 <= from_work(i) < len(RTT_genomic_positions)
+               and exon[0] <= RTT_genomic_positions[from_work(i)] <= exon[1]]
+    if not offsets:
+        return 0, L
+    return min(offsets), max(offsets) + 1
+
+
 def silent_bystanders(RTT_fwd, left_RTT_len, ref_len, alt_len,
                       transcript_strand, PAM_strand, frame_of_RTT_start,
                       RTT_genomic_positions=None, frame_map=None, boundaries=None,
                       window_nt=5, max_muts=2, max_candidates=20,
-                      splice_buffer=3):
+                      splice_buffer=3, exon_blocks=None):
     """
     Finds synonymous ("silent") mutations that can be carried in the RTT of a
     pegRNA alongside the intended edit.
@@ -359,7 +396,9 @@ def silent_bystanders(RTT_fwd, left_RTT_len, ref_len, alt_len,
     reading frame; all changes lie strictly within window_nt of the edit; the
     intended edit is never altered (for a pure deletion, the bases flanking the
     junction are protected instead); and positions outside the CDS or close to a
-    splice site are left alone when frame_map/boundaries are provided.
+    splice site are left alone when frame_map/boundaries are provided; and when
+    exon_blocks is given, every change is confined to the same exon as the edit,
+    since an RTT cannot span an intron.
 
     Reading frame and strand
     -------------------------
@@ -426,6 +465,15 @@ def silent_bystanders(RTT_fwd, left_RTT_len, ref_len, alt_len,
 
         Genomic coordinate of each base of RTT_fwd, used for CDS and splice-site
         checks. Default = None (checks skipped).
+
+    exon_blocks
+        *type = list or None*
+
+        CDS blocks of the transcript, 1-based inclusive, same format as
+        start_end_cds. When supplied together with RTT_genomic_positions, silent
+        bystanders are confined to the exon that contains the edit: an RTT is one
+        contiguous stretch of genomic DNA, so a bystander in a neighbouring exon
+        does not describe a real molecule. Default = None (no confinement).
 
     frame_map
         *type = dict or None*
@@ -540,6 +588,24 @@ def silent_bystanders(RTT_fwd, left_RTT_len, ref_len, alt_len,
     else:
         w_lo = max(0, to_work(anchor_hi - 1) - window_nt)
         w_hi = min(L, to_work(anchor_lo) + 1 + window_nt)
+
+    #--- confine the window to the edit's own exon
+    #
+    #A bystander in a different exon from the edit is not a real design: the RTT
+    #is one contiguous piece of genomic DNA, so it cannot reach across an intron.
+    #Splice-site distance (position_is_safe) does not catch this on its own --
+    #two positions can each sit comfortably inside their own exon and still be
+    #separated by an intron. Intersecting the window with the edit's exon is the
+    #check that does, and it subsumes the boundary check within that exon.
+    if RTT_genomic_positions is not None and exon_blocks:
+        e_lo, e_hi = _exon_window(RTT_genomic_positions, exon_blocks,
+                                  anchor_lo, anchor_hi, to_work, from_work,
+                                  same_strand, L)
+        w_lo = max(w_lo, e_lo)
+        w_hi = min(w_hi, e_hi)
+        if w_lo >= w_hi:
+            #the edit sits at an exon edge and nothing in-exon is within reach
+            return []
 
     #--- which codons may be varied
     first_codon = w_lo - ((w_lo - frame_start_offset) % 3)

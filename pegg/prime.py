@@ -105,6 +105,7 @@ class mutation:
         #Strand the transcript is on ('+' or '-'), which is independent of the
         #strand a given pegRNA's PAM falls on.
         self.transcript_strand = None
+        self.exon_blocks = None
 
         #Reading frame and exon boundaries; see bystander.cds_frame_map() and
         #bystander.cds_boundaries().
@@ -933,7 +934,8 @@ def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths
                                 window_nt=bystander_window_nt,
                                 max_muts=max_bystander_muts,
                                 max_candidates=None,
-                                splice_buffer=splice_buffer)
+                                splice_buffer=splice_buffer,
+                                exon_blocks=mut.exon_blocks)
 
                         #sample at random rather than taking the best few: the
                         #point is to cover the design space, and the scoring
@@ -1803,11 +1805,15 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
             mut.transcript_strand = row_strand
             mut.frame_map = row_map
             mut.cds_boundaries = row_bounds
+            #the same blocks confine bystanders to the edit's own exon
+            _blocks = val.get('start_end_cds') if hasattr(val, 'get') else None
+            mut.exon_blocks = None if isinstance(_blocks, float) else _blocks
         else:
             #'orf' mode: the frame comes from ORF_start and there is no strand
             mut.transcript_strand = None
             mut.frame_map = frame_map
             mut.cds_boundaries = boundaries
+            mut.exon_blocks = None
 
         mut.PAM_idx_forward, mut.PAM_idx_rc = eligible_PAM_finder(mut, PAM, max(RTT_lengths), proto_size)
 
