@@ -138,111 +138,30 @@ All variant types are supported (SNP, ONP, INS, DEL, INDEL).
 Version 3.0 change summary
 ****************************
 
-Everything below is additive. With ``silent_bystander=False`` (the default), PEGG 3.0 produces byte-identical output to
-version 2.0 for all three input formats and for the base editing module.
+Everything is additive: with ``silent_bystander=False`` (the default), PEGG 3.0 produces byte-identical output to
+version 2.0.
 
 **New capability.** pegRNAs can carry synonymous ("silent") bystander mutations alongside the intended edit. Both
 designs are returned in the same table, distinguished by the ``has_silent_bystander`` column. Sensors, oligos and
-filtration all reflect the bystander mutations. All variant types are supported (SNP, ONP, INS, DEL, INDEL).
+filtration all reflect the bystander mutations, and all variant types are supported (SNP, ONP, INS, DEL, INDEL).
 
 **New module** ``pegg.bystander`` -- silent bystander generation plus reading frame utilities, most usefully
-``cds_for_variants()``, which resolves each gene's canonical transcript and CDS straight from a cBioPortal-format
-table.
+``cds_for_variants()``.
 
-**New parameters** on ``prime.run()``, all keyword, all appended, all inert when the feature is off:
-``silent_bystander``, ``silent_per_mut``, ``ORF_start``, ``bystander_window_nt``, ``max_bystander_muts``,
-``splice_buffer``, ``seed``. For ``cBioPortal`` input the reading frame is not passed as an argument at all: it is
-read per variant from the annotation columns that ``bystander.cds_for_variants()`` attaches to the input table, so a
-single call can span a whole library.
+**New parameters** on ``prime.run()``, all keyword and all inert when the feature is off: ``silent_bystander``,
+``silent_per_mut``, ``ORF_start``, ``bystander_window_nt``, ``max_bystander_muts``, ``splice_buffer``, ``seed``.
 
 **New output columns**, 7 added, none removed or renamed: ``has_silent_bystander``, ``n_bystander_muts``,
 ``bystander_positions``, ``bystander_dist_to_edit``, ``PAM_disrupted_edit``, ``PAM_disrupted_by_bystander``,
 ``pegRNA_rank_within_group``.
 
-**One changed meaning.** ``PAM_disrupted`` now means "disrupted by the intended edit **or** by a silent bystander",
-since that is what matters biologically and what the scoring functions should see; its previous meaning is preserved
-exactly in ``PAM_disrupted_edit``. Likewise ``pegRNA_rank`` now ranks bystander designs together with ordinary ones,
-while ``pegRNA_rank_within_group`` reproduces the version 2.0 ranking. With the feature off both pairs are identical,
-so nothing changes for existing pipelines.
+**One changed meaning.** ``PAM_disrupted`` now means "disrupted by the intended edit **or** by a silent bystander";
+its previous meaning is preserved exactly in ``PAM_disrupted_edit``. Likewise ``pegRNA_rank`` now ranks bystander
+designs together with ordinary ones, while ``pegRNA_rank_within_group`` reproduces the version 2.0 ranking. With the
+feature off both pairs are identical.
 
-**Bug fix.** ``prime.sensor_viz()`` could fail with ``ValueError: setting an array element with a sequence`` when a
-pegRNA's 3' extension reached past the edge of the sensor window: the padding offset went negative, and
-``['-'] * <negative>`` yields an empty list rather than an error, so that row silently came out longer than the others.
-This affected version 2.0 as well. The row is now clipped to the visible part of the window, and a protospacer that
-cannot be located in the sensor raises a clear message instead of a matplotlib error. Plots that rendered before are
-unchanged.
-
-**Backwards compatibility.** No signature lost or reordered a parameter, no column was removed or renamed, and
-``base.run_base()`` is untouched. Code that filters on ``PAM_disrupted`` or ``pegRNA_rank`` **with the feature switched
-on** should move to ``PAM_disrupted_edit`` / ``pegRNA_rank_within_group``. Filtering
-``df[~df['has_silent_bystander']]`` recovers the version 2.0 design set at any point.
-
-
-Updating the online documentation
-***********************************
-
-The documentation at https://pegg.readthedocs.io is built with Sphinx from the ``docs/`` directory of this repository.
-The ``.rst`` sources are in the repo, so the edits below can be made here and pushed; whoever holds the Read the Docs
-account only needs to trigger (or allow) a rebuild.
-
-Four places need updating for version 3.0:
-
-**1.** ``docs/index.rst`` -- *main function description*
-
-The numbered list under "PEGG's main functions are:" (around line 21) ends at item (5). Add a sixth item:
-
-.. code-block:: rst
-
-   (6) Optional silent bystander mutations: synonymous edits placed alongside the intended edit to evade mismatch
-       repair and, where they fall in the PAM, reduce re-nicking. Both the ordinary and bystander-carrying designs are
-       returned, so they can be compared directly.
-
-The paragraph immediately after that list still says "PEGG has recently been updated to version 2.0". Replace it with a
-version 3.0 paragraph -- the "Version 3.0 change summary" section above can be reused verbatim.
-
-**2.** ``docs/quickstart.rst`` -- *input formatting* (section starts line 24)
-
-This section documents the three input formats. Add a note that silent bystanders need reading frame information, and
-that the requirement differs by format:
-
-.. code-block:: rst
-
-   For silent bystander design, the reading frame must be known. With ``cBioPortal`` input it is looked up per genomic
-   position from a CDS annotation, and CDS membership and splice sites are checked. With ``WT_ALT`` and ``PrimeDesign``
-   input there are no genomic coordinates, so the frame is declared with ``ORF_start`` and **the input sequence must be
-   in frame** -- entirely coding sequence. Ordinary pegRNA design is unaffected and needs no frame information.
-
-**3.** ``docs/quickstart.rst`` -- *generating pegRNAs* (line 128) *and design options* (lines 152, 211)
-
-Add ``silent_bystander`` and its companion parameters to the design options tables, and add a worked example after the
-existing ``prime.run()`` example. The "Usage" and "Building the CDS annotation" sections of this README can be copied
-across as-is.
-
-**4.** ``docs/PEGG.rst`` -- *complete documentation*
-
-This page autogenerates API docs with ``automodule``. Add a fourth block alongside ``pegg.prime``, ``pegg.base`` and
-``pegg.library``:
-
-.. code-block:: rst
-
-   pegg.bystander
-   ---------------
-
-   .. automodule:: pegg.bystander
-      :members:
-
-Every function in ``pegg/bystander.py`` already carries a numpydoc-style docstring in the same format as the rest of
-the package, so this block is all that is needed.
-
-**Rebuilding locally to check**
-
-.. code-block:: bash
-
-   pip install -r docs/doc-requirements.txt
-   sphinx-build -b html docs docs/_build/html
-
-Read the Docs rebuilds automatically on push if the webhook is active; otherwise trigger a build from the project
-dashboard.
+**Bug fix.** ``prime.sensor_viz()`` could fail with a matplotlib ``ValueError`` when a pegRNA's 3' extension reached
+past the edge of the sensor window. This affected version 2.0 as well; plots that rendered before are unchanged.
 
 
 PEGG is an open source python package. If you use PEGG, please cite it using the following citation:
