@@ -680,15 +680,11 @@ def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths
     designs can be compared; the has_silent_bystander column distinguishes them.
 
     Note that a silent bystander can knock out the PAM as well, so PAM disruption
-    is reported three ways:
-
-        PAM_disrupted               disrupted by either cause. This is what the
-                                    scoring functions read, since it is what
-                                    matters biologically.
-        PAM_disrupted_edit          disrupted by the intended edit alone. This is
-                                    what PAM_disrupted meant before silent
-                                    bystanders were added.
-        PAM_disrupted_by_bystander  disrupted by a silent bystander alone.
+    is reported three ways: PAM_disrupted (disrupted by either cause -- this is
+    what the scoring functions read, since it is what matters biologically),
+    PAM_disrupted_edit (by the intended edit alone, which is what PAM_disrupted
+    meant before silent bystanders were added), and PAM_disrupted_by_bystander
+    (by a silent bystander alone).
 
     Parameters
     ------------
@@ -2105,9 +2101,23 @@ def sensor_viz(df_w_sensor, i):
         #protospacer
         proto = df_w_sensor.iloc[i]['Protospacer']
         proto_start = sensor_comp.find(proto[::-1][:19])
-        proto_left = ['-']*(proto_start)
-        proto_right = ['-']*(len(sensor)-proto_start-len(proto))
-        split_p = split_word(proto[::-1])
+        if proto_start < 0:
+            raise ValueError(
+                'could not locate the protospacer within the sensor for row %d. '
+                'This happens when the sensor is too short to contain it, or in '
+                'highly repetitive sequence; check sensor_error and '
+                'sensor_length for this pegRNA.' % i)
+
+        #clip to the visible window: a protospacer running past the sensor edge
+        #would otherwise drop its padding and leave a row of the wrong length
+        proto_rev = proto[::-1]
+        p_clip_right = max(0, proto_start + len(proto) - len(sensor))
+        if p_clip_right:
+            proto_rev = proto_rev[:len(proto_rev)-p_clip_right]
+
+        proto_left = ['-']*max(0, proto_start)
+        proto_right = ['-']*max(0, len(sensor)-proto_start-len(proto))
+        split_p = split_word(proto_rev)
         split_proto = proto_left + split_p + proto_right
 
         #RTT_PBS
@@ -2116,9 +2126,21 @@ def sensor_viz(df_w_sensor, i):
         RTT_PBS = df_w_sensor.iloc[i]['RTT_PBS']
         RTT_PBS_end = proto_start+3+PBS_len
         RTT_PBS_start = RTT_PBS_end - len(RTT_PBS)
-        left = ['-']*RTT_PBS_start
-        right = ['-']*(len(sensor) - RTT_PBS_end)
-        split_RTTPBS = split_word(RTT_PBS)
+
+        #The 3' extension can reach past the edge of the sensor window, which
+        #makes RTT_PBS_start negative (or RTT_PBS_end run past the sensor).
+        #['-'] * a negative number is an empty list, so the padding silently
+        #vanishes and this row ends up longer than the others -- an array
+        #matplotlib cannot render. Clip the extension to the part that is
+        #actually visible instead.
+        clip_left = max(0, -RTT_PBS_start)
+        clip_right = max(0, RTT_PBS_end - len(sensor))
+        visible_RTT_PBS = RTT_PBS[clip_left:len(RTT_PBS)-clip_right] \
+            if clip_right else RTT_PBS[clip_left:]
+
+        left = ['-']*max(0, RTT_PBS_start)
+        right = ['-']*max(0, len(sensor) - RTT_PBS_end)
+        split_RTTPBS = split_word(visible_RTT_PBS)
         split_RTT_PBS = left + split_RTTPBS + right
 
         #translation for coloring
@@ -2189,9 +2211,21 @@ def sensor_viz(df_w_sensor, i):
         #protospacer
         proto = df_w_sensor.iloc[i]['Protospacer']
         proto_start = sensor.find(proto[1:])-1 #account for G+19 or G+20
-        proto_left = ['-']*(proto_start)
-        proto_right = ['-']*(len(sensor)-proto_start-len(proto))
-        split_p = split_word(proto)
+        if proto_start < 0:
+            raise ValueError(
+                'could not locate the protospacer within the sensor for row %d. '
+                'This happens when the sensor is too short to contain it, or in '
+                'highly repetitive sequence; check sensor_error and '
+                'sensor_length for this pegRNA.' % i)
+
+        proto_vis = proto
+        p_clip_right = max(0, proto_start + len(proto) - len(sensor))
+        if p_clip_right:
+            proto_vis = proto_vis[:len(proto_vis)-p_clip_right]
+
+        proto_left = ['-']*max(0, proto_start)
+        proto_right = ['-']*max(0, len(sensor)-proto_start-len(proto))
+        split_p = split_word(proto_vis)
         split_proto = proto_left + split_p + proto_right
 
         #RTT_PBS
@@ -2205,9 +2239,17 @@ def sensor_viz(df_w_sensor, i):
         RTT_PBS_start = proto_start + len(proto) -3 - PBS_len
         RTT_PBS_end = proto_start + len(proto) -3 + RTT_len
 
-        left = ['-']*RTT_PBS_start
-        right = ['-']*(len(sensor) - RTT_PBS_end)
-        split_RTTPBS = split_word(RTT_PBS)
+        #as above: clip the 3' extension to the part visible in the sensor, so
+        #that a negative offset cannot silently drop the padding and leave this
+        #row longer than the rest
+        clip_left = max(0, -RTT_PBS_start)
+        clip_right = max(0, RTT_PBS_end - len(sensor))
+        visible_RTT_PBS = RTT_PBS[clip_left:len(RTT_PBS)-clip_right] \
+            if clip_right else RTT_PBS[clip_left:]
+
+        left = ['-']*max(0, RTT_PBS_start)
+        right = ['-']*max(0, len(sensor) - RTT_PBS_end)
+        split_RTTPBS = split_word(visible_RTT_PBS)
         split_RTT_PBS = left + split_RTTPBS + right
 
         #translation for coloring

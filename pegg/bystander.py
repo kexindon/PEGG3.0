@@ -35,7 +35,7 @@ looks, and both are handled here:
 Input formats
 --------------
 PEGG accepts three input formats. They do not all support silent bystanders
-equally, because they do not all carry genomic coordinates:
+equally, because they do not all carry genomic coordinates::
 
     cBioPortal   Coordinates are available, so the reading frame is looked up
                  per position from a CDS annotation (start_end_cds +
@@ -350,9 +350,9 @@ def silent_bystanders(RTT_fwd, left_RTT_len, ref_len, alt_len,
     Finds synonymous ("silent") mutations that can be carried in the RTT of a
     pegRNA alongside the intended edit.
 
-    Returns a list of dicts, each describing one bystander option:
-    {'RTT': <new RTT, PAM-strand orientation>, 'n_muts': int,
-     'positions': [offsets into RTT_fwd], 'dist_to_edit': int, 'aa_check': True}
+    Returns a list of dicts, each describing one bystander option, with keys
+    'RTT' (the new RTT in PAM-strand orientation), 'n_muts', 'positions'
+    (offsets into RTT_fwd), 'dist_to_edit' and 'aa_check'.
 
     Options are sorted fewest-mutations-first, then by proximity to the edit.
     Every option is translated and checked to be synonymous against the supplied
@@ -780,3 +780,700 @@ def frame_of_offset(offset, mode, genomic_positions=None, frame_map=None,
 
     #'orf': the frame is declared relative to the start of the input sequence
     return (offset - ORF_start) % 3
+
+
+#--- building CDS annotations ---------
+
+def cds_from_gtf(filepath, genes=None, transcript_ids=None, longest_only=False):
+    """
+    Extracts CDS blocks per gene from a GTF/GFF annotation file, in the format
+    prime.run() expects. Returns a dict of
+
+        {gene_name: {'strand': '+'/'-', 'cds': [[start, end], ...],
+                     'transcript_id': str, 'n_codons': int, 'valid': bool}}
+
+    Blocks are 1-based inclusive and ordered along the + strand, matching
+    library.neutral_substitutions() and prime.run(start_end_cds=...).
+
+    A gene typically has several transcripts, and the reading frame belongs to
+    one of them, so exactly one has to be chosen. By default the transcript with
+    the longest CDS is used; pass transcript_ids to choose explicitly.
+
+    Note the chromosome names in the annotation must match the keys of the
+    chrom_dict used for design (PEGG uses 1..22, 'X', 'Y'); see
+    cds_annotation_report() for a check of this and of frame validity.
+
+    Parameters
+    -----------
+    filepath
+        *type = str*
+
+        Path to a GTF or GFF3 file, optionally gzipped. Ensembl, GENCODE and
+        NCBI RefSeq files all work.
+
+    genes
+        *type = list or None*
+
+        Gene names to extract. Default = None (every gene in the file, which is
+        slow and memory-hungry for a whole genome).
+
+    transcript_ids
+        *type = dict or None*
+
+        {gene_name: transcript_id} to pin specific transcripts instead of taking
+        the longest CDS. Default = None.
+
+    longest_only
+        *type = bool*
+
+        Whether to reduce each gene to its longest-CDS transcript. Default =
+        False, which returns every transcript keyed as "gene|transcript_id" so
+        that the choice stays explicit -- the reading frame belongs to one
+        transcript, and picking the longest is a guess that can disagree with
+        the canonical transcript a variant was annotated against.
+
+        Pass transcript_ids={gene: id} to select transcripts by name; set this
+        to True only if an arbitrary-but-reproducible choice is acceptable.
+    """
+    import gzip
+    import re as _re
+
+    opener = gzip.open if str(filepath).endswith('.gz') else open
+
+    wanted = set(genes) if genes is not None else None
+
+    #transcript -> (gene, strand, chrom, [[start, end], ...])
+    transcripts = {}
+
+    with opener(filepath, 'rt') as handle:
+        for line in handle:
+            if line.startswith('#'):
+                continue
+
+            parts = line.rstrip('\n').split('\t')
+            if len(parts) < 9 or parts[2] != 'CDS':
+                continue
+
+            chrom, start, end, strand, attrs = (parts[0], int(parts[3]),
+                                                int(parts[4]), parts[6], parts[8])
+
+            #GTF uses key "value"; GFF3 uses key=value
+            gene = (_re.search(r'gene_name[ =]"?([^";]+)"?', attrs)
+                    or _re.search(r'\bgene[ =]"?([^";]+)"?', attrs))
+            tx = (_re.search(r'transcript_id[ =]"?([^";]+)"?', attrs)
+                  or _re.search(r'\bParent[ =]"?(?:rna[-:])?([^";]+)"?', attrs))
+
+            if gene is None or tx is None:
+                continue
+
+            gene = gene.group(1)
+            if wanted is not None and gene not in wanted:
+                continue
+
+            tx = tx.group(1)
+            entry = transcripts.setdefault(tx, {'gene': gene, 'strand': strand,
+                                                'chrom': chrom, 'cds': []})
+            entry['cds'].append([start, end])
+
+    #pick one transcript per gene
+    by_gene = {}
+    for tx, entry in transcripts.items():
+        by_gene.setdefault(entry['gene'], []).append((tx, entry))
+
+    result = {}
+    for gene, candidates in by_gene.items():
+        if transcript_ids is not None and gene in transcript_ids:
+            chosen = [(tx, e) for tx, e in candidates
+                      if tx == transcript_ids[gene] or
+                      tx.split('.')[0] == str(transcript_ids[gene]).split('.')[0]]
+            if len(chosen) == 0:
+                continue
+            candidates = chosen
+        elif longest_only:
+            candidates = [max(candidates,
+                              key=lambda x: sum(e - s + 1 for s, e in x[1]['cds']))]
+
+        for tx, entry in candidates:
+            blocks = sorted(entry['cds'])
+            total = sum(e - s + 1 for s, e in blocks)
+            key = gene if (longest_only and transcript_ids is None) or len(candidates) == 1 \
+                else '%s|%s' % (gene, tx)
+            result[key] = {'strand': entry['strand'],
+                           'cds': blocks,
+                           'chrom': entry['chrom'],
+                           'transcript_id': tx,
+                           'n_codons': total // 3,
+                           'valid': (total % 3 == 0) and total > 0}
+
+    return result
+
+
+def cds_annotation_report(gene_cds, mutations=None, gene_column='Hugo_Symbol'):
+    """
+    Checks a CDS annotation dict before it is used for design, and returns a
+    dataframe summarising it. Catches the mistakes that would otherwise only
+    surface as silently wrong bystanders:
+
+      - a CDS whose length is not a multiple of three (wrong or partial transcript)
+      - overlapping CDS blocks
+      - a gene in the variant table with no annotation (gets no bystanders)
+      - variants that fall outside the CDS of their own gene (also get none)
+
+    Parameters
+    -----------
+    gene_cds
+        *type = dict*
+
+        {gene: {'strand': ..., 'cds': [[start, end], ...]}}, as produced by
+        cds_from_gtf() or written by hand.
+
+    mutations
+        *type = pd.DataFrame or None*
+
+        The input variant table, to cross-check gene coverage and whether each
+        variant lies inside its gene's CDS. Default = None (skip that check).
+
+    gene_column
+        *type = str*
+
+        Column of the variant table holding the gene name.
+        Default = 'Hugo_Symbol'.
+    """
+    import pandas as pd
+
+    rows = []
+    for gene, ann in gene_cds.items():
+        blocks = sorted(ann['cds'])
+        total = sum(e - s + 1 for s, e in blocks)
+
+        overlaps = any(blocks[i][1] >= blocks[i + 1][0]
+                       for i in range(len(blocks) - 1))
+
+        problems = []
+        if total == 0:
+            problems.append('empty CDS')
+        if total % 3 != 0:
+            problems.append('not a multiple of 3')
+        if overlaps:
+            problems.append('overlapping blocks')
+        if ann.get('strand') not in ('+', '-'):
+            problems.append('strand must be + or -')
+
+        row = {'gene': gene,
+               'strand': ann.get('strand'),
+               'n_blocks': len(blocks),
+               'cds_bp': total,
+               'n_codons': total / 3,
+               'transcript_id': ann.get('transcript_id'),
+               'n_variants': 0,
+               'variants_in_cds': 0,
+               'problems': '; '.join(problems) if problems else ''}
+
+        if mutations is not None:
+            sub = mutations[mutations[gene_column] == gene]
+            row['n_variants'] = len(sub)
+            if len(sub) and not problems:
+                fmap = cds_frame_map(blocks, ann['strand'])
+                row['variants_in_cds'] = int(sum(
+                    1 for p in sub['Start_Position'] if int(p) in fmap))
+                if row['variants_in_cds'] < len(sub):
+                    missing = len(sub) - row['variants_in_cds']
+                    row['problems'] = ('%d/%d variants outside the CDS'
+                                       % (missing, len(sub)))
+
+        rows.append(row)
+
+    report = pd.DataFrame(rows)
+
+    #genes present in the variant table but not annotated at all
+    if mutations is not None:
+        missing = sorted(set(mutations[gene_column]) - set(gene_cds))
+        for gene in missing:
+            report = pd.concat([report, pd.DataFrame([{
+                'gene': gene, 'strand': None, 'n_blocks': 0, 'cds_bp': 0,
+                'n_codons': 0, 'transcript_id': None,
+                'n_variants': int((mutations[gene_column] == gene).sum()),
+                'variants_in_cds': 0,
+                'problems': 'no CDS annotation - will get no bystanders'}])],
+                ignore_index=True)
+
+    return report.sort_values('gene').reset_index(drop=True)
+
+
+def cds_from_annotation_db(db, gene_or_tx):
+    """
+    Extracts CDS blocks and strand from a gffutils annotation database, e.g. the
+    one H2M's anno_loader() returns.
+
+    Returns a dict with keys 'strand', 'cds', 'chrom', 'transcript_id',
+    'n_codons' and 'valid' -- the same shape as cds_from_gtf(), so it drops
+    straight into prime.run().
+
+    The CDS extraction follows H2M's own GetTx(): the transcript's CDS children
+    are pulled in + strand order and used as the coding blocks. Reimplemented
+    here rather than imported so that pegg keeps no dependency on H2M; gffutils
+    is the only requirement, and only when this function is called.
+
+    Parameters
+    -----------
+    db
+        *type = gffutils.FeatureDB*
+
+        Annotation database, e.g. from gffutils.FeatureDB(path) or
+        h2m.anno_loader(path). Must be the same genome build as the chrom_dict
+        used for design.
+
+    gene_or_tx
+        *type = str*
+
+        A transcript id (e.g. 'ENST00000269305'), or a gene name / gene id, in
+        which case the transcript with the longest CDS is used.
+
+    """
+    import gffutils
+
+    def _blocks(tx_id):
+        #H2M's GetTx pulls CDS children ordered along the + strand
+        cds = list(db.children(tx_id, order_by='+end', featuretype=['CDS']))
+        return [[int(i.start), int(i.end)] for i in cds]
+
+    #resolve gene name / gene id to a transcript
+    tx_id = gene_or_tx
+    feature = None
+    is_tx = False
+
+    #Transcript ids may or may not carry a version suffix (ENST00000269305.4 vs
+    #ENST00000269305), and the annotation may use either form, so try both.
+    bare = str(gene_or_tx).split('.')[0]
+    for candidate in ([gene_or_tx] if bare == gene_or_tx else [gene_or_tx, bare]):
+        try:
+            feature = db[candidate]
+        except gffutils.FeatureNotFoundError:
+            continue
+        if feature.featuretype in ('transcript', 'mRNA'):
+            tx_id, is_tx = candidate, True
+            break
+
+    #still nothing, but the id looks like a versioned transcript: scan for a
+    #transcript whose id matches once the version is stripped
+    if not is_tx and bare != gene_or_tx:
+        for t in db.features_of_type(('transcript', 'mRNA')):
+            if str(t.id).split('.')[0] == bare:
+                tx_id, feature, is_tx = t.id, t, True
+                break
+
+    if not is_tx:
+        #A gene has many transcripts and the reading frame belongs to exactly one
+        #of them, so picking one automatically would be a guess. Guessing wrong
+        #does not fail loudly: it yields bystanders that are silent in the wrong
+        #frame, and protein-level annotation (e.g. HGVSp_Short) that no longer
+        #lines up with the transcript actually designed against. Make the caller
+        #choose.
+        candidates = []
+
+        if feature is not None and feature.featuretype == 'gene':
+            candidates = [t.id for t in db.children(gene_or_tx,
+                                                    featuretype=['transcript', 'mRNA'])]
+        else:
+            for g in db.features_of_type('gene'):
+                names = g.attributes.get('gene_name', []) + g.attributes.get('gene', [])
+                if gene_or_tx in names:
+                    candidates = [t.id for t in db.children(g.id,
+                                                            featuretype=['transcript', 'mRNA'])]
+                    break
+
+        if len(candidates) == 0:
+            raise ValueError("no transcript found for %r in this annotation "
+                             "database" % (gene_or_tx,))
+
+        raise ValueError(
+            "%r is a gene, not a transcript, and the reading frame belongs to a "
+            "single transcript -- pass a transcript id instead of letting it be "
+            "guessed.\n"
+            "This annotation has %d transcript(s) for it, e.g. %s.\n"
+            "Use the canonical transcript for your variant annotation: H2M's "
+            "get_tx_batch(df, species, ver) attaches canonical ids to a variant "
+            "table, or pass transcript_ids={%r: '<id>'}."
+            % (gene_or_tx, len(candidates), ', '.join(sorted(candidates)[:3]),
+               gene_or_tx))
+
+    blocks = sorted(_blocks(tx_id))
+    if len(blocks) == 0:
+        raise ValueError("transcript %r has no CDS features (non-coding?)" % (tx_id,))
+
+    total = sum(e - s + 1 for s, e in blocks)
+    tx = db[tx_id]
+
+    return {'strand': tx.strand,
+            'cds': blocks,
+            'chrom': tx.chrom,
+            'transcript_id': tx_id,
+            'n_codons': total // 3,
+            'valid': (total % 3 == 0) and total > 0}
+
+
+def cds_from_tx_ids(db, tx_ids):
+    """
+    Looks up CDS blocks and strand for a set of transcript ids at once. Returns
+    {tx_id: {'strand': ..., 'cds': [[start, end], ...], ...}}, with one entry per
+    transcript that could be resolved; transcripts that are missing from the
+    annotation or have no CDS are skipped rather than raising.
+
+    Designed to take the transcript ids that H2M's get_tx_batch() attaches to a
+    variant table, so that a library spanning many genes can be designed without
+    naming transcripts one at a time.
+
+    Parameters
+    -----------
+    db
+        *type = gffutils.FeatureDB*
+
+        Annotation database, e.g. gffutils.FeatureDB(path) or the object
+        h2m.anno_loader(path) returns.
+
+    tx_ids
+        *type = iterable of str*
+
+        Transcript ids, e.g. list(df['tx_id_h'].unique()).
+    """
+    result = {}
+
+    for tx in tx_ids:
+        if tx is None or (isinstance(tx, float) and tx != tx):   #NaN
+            continue
+        if tx in result:
+            continue
+        try:
+            result[tx] = cds_from_annotation_db(db, tx)
+        except (ValueError, KeyError):
+            continue
+
+    return result
+
+
+def add_cds_to_variants(df, db, tx_column='tx_id_h', gene_column=None):
+    """
+    Attaches reading frame information to a variant table, one transcript per
+    row, and returns (annotated_df, cds_lookup).
+
+    The returned dataframe gains 'transcript_strand', 'cds_valid' and
+    'cds_n_codons' columns, and cds_lookup maps each transcript id to its CDS
+    blocks. Together these are what prime.run(silent_bystander=True) needs, and
+    they keep each variant tied to the transcript it was annotated against --
+    which matters when a library spans several genes, since the reading frame
+    belongs to one transcript and cannot be shared between them.
+
+    Typical use, starting from H2M::
+
+        df, df_fail = h2m.get_tx_batch(df, species='h', ver=37)
+        df, cds_lookup = bystander.add_cds_to_variants(df, db_h)
+
+        for tx, sub in df.groupby('tx_id_h'):
+            ann = cds_lookup[tx]
+            peg = prime.run(sub, 'cBioPortal', chrom_dict=chrom_dict,
+                            silent_bystander=True,
+                            transcript_strand=ann['strand'],
+                            start_end_cds=ann['cds'], ...)
+
+    Parameters
+    -----------
+    df
+        *type = pd.DataFrame*
+
+        Variant table carrying a transcript id column.
+
+    db
+        *type = gffutils.FeatureDB*
+
+        Annotation database; must be the same genome build as the variants.
+
+    tx_column
+        *type = str*
+
+        Column holding the transcript id. Default = 'tx_id_h' (H2M's human
+        output); use 'tx_id_m' for mouse.
+
+    gene_column
+        *type = str or None*
+
+        Gene name column, used only to make the summary printout more readable.
+        Default = None.
+    """
+    import pandas as pd
+
+    if tx_column not in df.keys():
+        raise ValueError(
+            "no %r column in the variant table. Run H2M's get_tx_batch() first, "
+            "or pass tx_column= the column holding your transcript ids."
+            % (tx_column,))
+
+    cds_lookup = cds_from_tx_ids(db, df[tx_column].dropna().unique())
+
+    out = df.copy()
+    out['transcript_strand'] = [
+        cds_lookup[t]['strand'] if t in cds_lookup else None
+        for t in out[tx_column]]
+    out['cds_valid'] = [
+        bool(cds_lookup[t]['valid']) if t in cds_lookup else False
+        for t in out[tx_column]]
+    out['cds_n_codons'] = [
+        cds_lookup[t]['n_codons'] if t in cds_lookup else None
+        for t in out[tx_column]]
+
+    #say plainly which variants will and will not get bystanders
+    n_ok = int(out['cds_valid'].sum())
+    print('%d/%d variants have a usable reading frame (%d transcripts)'
+          % (n_ok, len(out), len(cds_lookup)))
+
+    if n_ok < len(out):
+        bad = out[~out['cds_valid']]
+        cols = [c for c in (gene_column, tx_column) if c is not None]
+        missing = sorted(set(bad[tx_column].dropna()) - set(cds_lookup))
+        if missing:
+            print('  no CDS in the annotation for: %s'
+                  % ', '.join(str(m) for m in missing[:8]))
+        invalid = sorted({t for t in bad[tx_column].dropna()
+                          if t in cds_lookup and not cds_lookup[t]['valid']})
+        if invalid:
+            print('  CDS not a multiple of 3 for: %s'
+                  % ', '.join(str(m) for m in invalid[:8]))
+        print('  these variants will still get ordinary pegRNAs, just no bystanders')
+
+    return out, cds_lookup
+
+
+def cds_for_variants(df, db, gene_column='Hugo_Symbol', tx_column=None,
+                     transcript_ids=None, species='human', genome_version=37,
+                     verbose=True):
+    """
+    Resolves the reading frame for a variant table, working from the standard
+    cBioPortal column names, and returns (annotated_df, cds_lookup).
+
+    This is the batch entry point for cBioPortal-format input: it works from the
+    gene names PEGG already uses ('Hugo_Symbol') rather than requiring H2M's
+    'gene_name_h' column, while still leaving the choice of transcript explicit.
+
+    The transcript of each gene is its canonical transcript, from the curated
+    table H2M uses (see canonical_transcripts()). This matters because variant
+    annotation -- HGVSp_Short, protein position -- is generally computed against
+    the canonical transcript, so designing against a different one can shift the
+    reading frame and make those labels disagree with the design. Override per
+    gene with transcript_ids, or use ids already in the table with tx_column.
+
+    The returned dataframe gains 'transcript_id', 'transcript_strand',
+    'cds_valid' and 'cds_n_codons'; cds_lookup maps each gene to its CDS blocks.
+    Genes that cannot be resolved are reported and simply get no bystanders.
+
+    If a transcript id column is already present -- for instance because
+    h2m.get_tx_batch() was run first -- pass tx_column to use those ids instead
+    of choosing per gene.
+
+    Typical use::
+
+        df, cds_lookup = bystander.cds_for_variants(mutations, db)
+
+        for gene, sub in df.groupby('Hugo_Symbol'):
+            ann = cds_lookup.get(gene)
+            if ann is not None and ann['valid']:
+                peg = prime.run(sub.reset_index(drop=True), 'cBioPortal',
+                                silent_bystander=True,
+                                transcript_strand=ann['strand'],
+                                start_end_cds=ann['cds'], ...)
+
+    Parameters
+    -----------
+    df
+        *type = pd.DataFrame*
+
+        Variant table in cBioPortal format.
+
+    db
+        *type = gffutils.FeatureDB*
+
+        Annotation database, e.g. gffutils.FeatureDB(path) or the object
+        h2m.anno_loader(path) returns. Must be the same genome build as the
+        variants.
+
+    gene_column
+        *type = str*
+
+        Column holding the gene name. Default = 'Hugo_Symbol' (cBioPortal).
+
+    tx_column
+        *type = str or None*
+
+        Column holding a transcript id, if the table already has one. H2M's
+        get_tx_batch() writes canonical ids into 'tx_id_h' / 'tx_id_m'.
+        Default = None, i.e. look the canonical transcript up per gene.
+
+    species
+        *type = str*
+
+        'human' or 'mouse', for the canonical transcript table.
+        Default = 'human'.
+
+    genome_version
+        *type = int*
+
+        37 or 38, matching the annotation database and the variant coordinates.
+        Default = 37.
+
+    transcript_ids
+        *type = dict or None*
+
+        {gene: transcript_id} overriding the canonical transcript for the genes
+        it names. Default = None (use the canonical transcript throughout).
+
+    verbose
+        *type = bool*
+
+        Whether to print a summary of what resolved and what did not.
+        Default = True.
+    """
+    import pandas as pd
+
+    key_column = tx_column if tx_column is not None else gene_column
+
+    if key_column not in df.keys():
+        raise ValueError(
+            "no %r column in the variant table. Pass gene_column= or "
+            "tx_column= to point at the column holding gene names or "
+            "transcript ids." % (key_column,))
+
+    #The reading frame belongs to one transcript, so a transcript is named rather
+    #than guessed. Unless the table already carries ids (tx_column), the
+    #canonical transcript of each gene is used -- the same curated table H2M
+    #uses -- with transcript_ids overriding it where given.
+    canonical = None
+    if tx_column is None:
+        canonical = canonical_transcripts(species, genome_version)
+
+    lookup = {}
+    failures = {}
+
+    for key in pd.Series(df[key_column]).dropna().unique():
+        target = key
+        if tx_column is None:
+            if transcript_ids is not None and key in transcript_ids:
+                target = transcript_ids[key]
+            elif key in canonical:
+                target = canonical[key]
+            else:
+                failures[key] = 'no canonical transcript known for this gene'
+                continue
+
+        try:
+            lookup[key] = cds_from_annotation_db(db, target)
+        except (ValueError, KeyError) as err:
+            failures[key] = str(err).split('\n')[0]
+
+    out = df.copy()
+    out['transcript_id'] = [lookup[k]['transcript_id'] if k in lookup else None
+                            for k in out[key_column]]
+    out['transcript_strand'] = [lookup[k]['strand'] if k in lookup else None
+                                for k in out[key_column]]
+    out['cds_valid'] = [bool(lookup[k]['valid']) if k in lookup else False
+                        for k in out[key_column]]
+    out['cds_n_codons'] = [lookup[k]['n_codons'] if k in lookup else None
+                           for k in out[key_column]]
+
+    if verbose:
+        n_ok = int(out['cds_valid'].sum())
+        print('%d/%d variants have a usable reading frame (%d of %d %s resolved)'
+              % (n_ok, len(out), len(lookup),
+                 out[key_column].nunique(),
+                 'transcripts' if tx_column else 'genes'))
+
+        if failures:
+            print('  not found in the annotation: %s'
+                  % ', '.join(sorted(failures)[:8]))
+        bad_frame = sorted(k for k, v in lookup.items() if not v['valid'])
+        if bad_frame:
+            print('  CDS not a multiple of 3: %s' % ', '.join(bad_frame[:8]))
+        if failures or bad_frame:
+            print('  those variants still get ordinary pegRNAs, just no bystanders')
+
+    return out, lookup
+
+
+#--- canonical transcripts ---------
+
+#Canonical transcript per gene, taken from H2M
+#(https://github.com/kexindong/h2m-public), which curates one transcript per gene
+#rather than leaving the choice to a heuristic. Human entries are
+#[GRCh37, GRCh38]; mouse entries are a single id.
+_CANONICAL_TX_CACHE = {}
+
+
+def canonical_transcripts(species='human', genome_version=37):
+    """
+    Returns {gene_name: transcript_id}, the canonical transcript of each gene.
+
+    The table is the one H2M uses, bundled here so that pegg needs no dependency
+    on H2M. Using the canonical transcript matters because variant annotation
+    (HGVSp_Short, protein position) is generally computed against it: designing
+    against a different transcript can shift the reading frame and make the
+    protein-level labels disagree with what was actually designed.
+
+    Parameters
+    -----------
+    species
+        *type = str*
+
+        'human' or 'mouse'. Default = 'human'.
+
+    genome_version
+        *type = int*
+
+        37 or 38, for human. Ignored for mouse. Default = 37.
+    """
+    assert species in ['human', 'mouse'], "species must be 'human' or 'mouse'"
+    assert genome_version in [37, 38], 'genome_version must be 37 or 38'
+
+    key = (species, genome_version if species == 'human' else None)
+    if key in _CANONICAL_TX_CACHE:
+        return _CANONICAL_TX_CACHE[key]
+
+    import json
+    from importlib.resources import files
+
+    filename = ('canonical_tx_human.json' if species == 'human'
+                else 'canonical_tx_mouse.json')
+    with open(files(__package__).joinpath(filename)) as handle:
+        raw = json.load(handle)
+
+    if species == 'human':
+        #entries are [GRCh37 id, GRCh38 id]
+        index = 0 if genome_version == 37 else 1
+        table = {gene: ids[index] for gene, ids in raw.items()
+                 if isinstance(ids, list) and len(ids) > index}
+    else:
+        table = dict(raw)
+
+    _CANONICAL_TX_CACHE[key] = table
+    return table
+
+
+def canonical_transcript(gene, species='human', genome_version=37):
+    """
+    Returns the canonical transcript id of one gene, or None if the gene is not
+    in the table.
+
+    Parameters
+    -----------
+    gene
+        *type = str*
+
+        Gene name, e.g. 'TP53'.
+
+    species
+        *type = str*
+
+        'human' or 'mouse'. Default = 'human'.
+
+    genome_version
+        *type = int*
+
+        37 or 38, for human. Default = 37.
+    """
+    return canonical_transcripts(species, genome_version).get(gene)

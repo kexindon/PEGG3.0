@@ -17,6 +17,13 @@ pegg.base
    :undoc-members:
    :show-inheritance:
 
+pegg.bystander
+******************
+.. automodule:: pegg.bystander
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 pegg.library
 ****************************
 .. automodule:: pegg.library

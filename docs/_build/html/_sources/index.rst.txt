@@ -30,8 +30,20 @@ PEGG's main functions are:
 
 (5) Visualization Tools for pegRNA and gRNA design.
 
-PEGG has recently been updated to version 2.0, with new features including (1) increased input mutation format flexibility,
+(6) Optional silent bystander mutations: synonymous edits placed alongside the intended edit to evade mismatch repair and, where they fall in the PAM, reduce re-nicking. Both the ordinary and bystander-carrying designs are returned, so they can be compared directly.
+
+PEGG was updated to version 2.0 with new features including (1) increased input mutation format flexibility,
 (2) Dynamically computed Azimuth on-target scores, (3) a new base editing module, (4) improved library design functionality, as well as some minor bug fixes with INS/DEL design.
+
+Version 3.0 adds silent bystander mutations. pegRNAs can carry synonymous edits alongside the intended one, and both
+designs are returned in the same table -- the ordinary pegRNA and up to ``silent_per_mut`` bystander-carrying variants
+of it -- distinguished by the ``has_silent_bystander`` column, so either set can be filtered out afterwards. Sensors,
+oligos, and polyT / restriction-site filtration all reflect the bystander mutations, and all variant types are
+supported (SNP, ONP, INS, DEL, INDEL). The feature is off by default: with ``silent_bystander=False`` the output is
+identical to version 2.0.
+
+The synonymous mutation logic is informed by the silent bystander design approach in
+`PRIDICT2.0 <https://github.com/uzh-dqbm-cmi/PRIDICT2>`_ (Mathis et al., Nature Protocols 2025).
 
 Installation
 **************

@@ -1,7 +1,7 @@
 🚩Other pegRNA & gRNA Design Tools
-==============
+===================================
 pegRNA Design Tools
-**************
+*******************
 - `PrimeDesign <https://primedesign.pinellolab.partners.org/>`_
     - Includes PE3 functionality
 - `PRIDICT <https://www.pridict.it/>`_
@@ -16,9 +16,9 @@ pegRNA Design Tools
 - `Prime Editing Design Tool (NYU) <https://primeedit.nygenome.org/>`_
 
 base editing design tools
-**************
+*************************
 - `BEscan <https://dowlab.shinyapps.io/BEscan/>`_
 
 off-target analysis
-**************
+*******************
 - `GuideScan2 <https://guidescan.com/>`_

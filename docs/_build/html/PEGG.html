@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <head>
   <meta charset="utf-8">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#2D2D2D" />
   
@@ -16,10 +17,8 @@
 
   <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
       <script type="text/javascript" src="_static/documentation_options.js"></script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/_sphinx_javascript_frameworks_compat.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinx_highlight.js"></script>
   
 
   <script src="https://email.tl.fortawesome.com/c/eJxNjUEOgyAQAF8jR7Kw6wIHDh7sP1Cw2mgxgmn6-3JsMqc5zEQfE8dkxOY1KKMUOI3ACFKRJpSW2AAp7ontYIaxI6i7XPJVwyeVfCQ550Os3jLrGSNOLgbdAy6s0PBk2TFNjEbsfq31LB0OnX407pJa5v2faRadwSW63mn5KuLyR9j2tgx3zecanl-55R_-jjPs"></script> 
@@ -30,12 +29,14 @@
     <header>
       <div id="logo-container">
           
-          <a href="index.html"><img src="_static/PEGG_notext.png"></a>
+          <h1>
+            <a href="index.html">PEGG</a>
+          </h1>
           
       </div>
       <div id="project-container">
         
-        <h1>PEGG Documentation</h1>
+        <h1>Documentation</h1>
         
       </div>
 
@@ -83,6 +84,12 @@
 <li class="toctree-l3"><a class="reference internal" href="quickstart.html#design-options">Design Options</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#silent-bystander-mutations">Silent Bystander Mutations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#getting-the-reading-frame">Getting the reading frame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#designing-a-library">Designing a library</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#output-columns">Output columns</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#base-editing">Base Editing</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="quickstart.html#id2">Design Options</a></li>
 </ul>
@@ -95,9 +102,74 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="jupyter_tutorial.html">🪐 Jupyter Notebook Tutorial</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">📚 Complete Function Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#module-pegg.prime">pegg.prime</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-pegg.base">pegg.base</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-pegg.library">pegg.library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pegg.prime">pegg.prime</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.PAM_finder"><code class="docutils literal notranslate"><span class="pre">PAM_finder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.RF_score"><code class="docutils literal notranslate"><span class="pre">RF_score()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.clinvar_VCF_translator"><code class="docutils literal notranslate"><span class="pre">clinvar_VCF_translator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.df_formatter"><code class="docutils literal notranslate"><span class="pre">df_formatter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.eligible_PAM_finder"><code class="docutils literal notranslate"><span class="pre">eligible_PAM_finder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.genome_loader"><code class="docutils literal notranslate"><span class="pre">genome_loader()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.goldengate_oligos"><code class="docutils literal notranslate"><span class="pre">goldengate_oligos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.input_formatter"><code class="docutils literal notranslate"><span class="pre">input_formatter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.make_aligner"><code class="docutils literal notranslate"><span class="pre">make_aligner()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.mut_formatter"><code class="docutils literal notranslate"><span class="pre">mut_formatter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.mutation"><code class="docutils literal notranslate"><span class="pre">mutation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.ontarget_score"><code class="docutils literal notranslate"><span class="pre">ontarget_score()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.other_filtration"><code class="docutils literal notranslate"><span class="pre">other_filtration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.pegRNA_generator"><code class="docutils literal notranslate"><span class="pre">pegRNA_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.peggscore2"><code class="docutils literal notranslate"><span class="pre">peggscore2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.prime_oligo_generator"><code class="docutils literal notranslate"><span class="pre">prime_oligo_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.primedesign_formatter"><code class="docutils literal notranslate"><span class="pre">primedesign_formatter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.sensor_generator"><code class="docutils literal notranslate"><span class="pre">sensor_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.sensor_viz"><code class="docutils literal notranslate"><span class="pre">sensor_viz()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.prime.split_word"><code class="docutils literal notranslate"><span class="pre">split_word()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pegg.base">pegg.base</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.base.base_oligo_generator"><code class="docutils literal notranslate"><span class="pre">base_oligo_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.base.eligible_PAM_finder_base"><code class="docutils literal notranslate"><span class="pre">eligible_PAM_finder_base()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.base.gRNA_generator"><code class="docutils literal notranslate"><span class="pre">gRNA_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.base.run_base"><code class="docutils literal notranslate"><span class="pre">run_base()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.base.sensor_generator_base"><code class="docutils literal notranslate"><span class="pre">sensor_generator_base()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.base.sensor_viz_base"><code class="docutils literal notranslate"><span class="pre">sensor_viz_base()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.base.split_word"><code class="docutils literal notranslate"><span class="pre">split_word()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pegg.bystander">pegg.bystander</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#reading-frame">Reading frame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#input-formats">Input formats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.add_cds_to_variants"><code class="docutils literal notranslate"><span class="pre">add_cds_to_variants()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.canonical_transcript"><code class="docutils literal notranslate"><span class="pre">canonical_transcript()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.canonical_transcripts"><code class="docutils literal notranslate"><span class="pre">canonical_transcripts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.cds_annotation_report"><code class="docutils literal notranslate"><span class="pre">cds_annotation_report()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.cds_boundaries"><code class="docutils literal notranslate"><span class="pre">cds_boundaries()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.cds_codons"><code class="docutils literal notranslate"><span class="pre">cds_codons()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.cds_for_variants"><code class="docutils literal notranslate"><span class="pre">cds_for_variants()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.cds_frame_map"><code class="docutils literal notranslate"><span class="pre">cds_frame_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.cds_from_annotation_db"><code class="docutils literal notranslate"><span class="pre">cds_from_annotation_db()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.cds_from_gtf"><code class="docutils literal notranslate"><span class="pre">cds_from_gtf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.cds_from_tx_ids"><code class="docutils literal notranslate"><span class="pre">cds_from_tx_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.cds_positions"><code class="docutils literal notranslate"><span class="pre">cds_positions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.frame_at"><code class="docutils literal notranslate"><span class="pre">frame_at()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.frame_of_offset"><code class="docutils literal notranslate"><span class="pre">frame_of_offset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.position_is_safe"><code class="docutils literal notranslate"><span class="pre">position_is_safe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.resolve_frame_source"><code class="docutils literal notranslate"><span class="pre">resolve_frame_source()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.reverse_frame_anchor"><code class="docutils literal notranslate"><span class="pre">reverse_frame_anchor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.silent_bystanders"><code class="docutils literal notranslate"><span class="pre">silent_bystanders()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.synonymous_codons"><code class="docutils literal notranslate"><span class="pre">synonymous_codons()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.bystander.translate_codon"><code class="docutils literal notranslate"><span class="pre">translate_codon()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pegg.library">pegg.library</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.library.aavs1_muts"><code class="docutils literal notranslate"><span class="pre">aavs1_muts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.library.library_maker"><code class="docutils literal notranslate"><span class="pre">library_maker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.library.mutation_aggregator"><code class="docutils literal notranslate"><span class="pre">mutation_aggregator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.library.neutral_substitutions"><code class="docutils literal notranslate"><span class="pre">neutral_substitutions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.library.nontargeting_guides"><code class="docutils literal notranslate"><span class="pre">nontargeting_guides()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pegg.library.safe_muts"><code class="docutils literal notranslate"><span class="pre">safe_muts()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">❓ About PEGG</a></li>
@@ -119,15 +191,17 @@
       <div id="main-content-container">
         <div id="main-content" role="main">
           
-  <div class="section" id="complete-function-documentation">
-<h1>📚 Complete Function Documentation<a class="headerlink" href="#complete-function-documentation" title="Permalink to this heading">¶</a></h1>
+  <section id="complete-function-documentation">
+<h1>📚 Complete Function Documentation<a class="headerlink" href="#complete-function-documentation" title="Link to this heading">¶</a></h1>
 <p>This page contains the complete documentation for each function in the pegg module.</p>
-<div class="section" id="module-pegg.prime">
-<span id="pegg-prime"></span><h2>pegg.prime<a class="headerlink" href="#module-pegg.prime" title="Permalink to this heading">¶</a></h2>
+<section id="module-pegg.prime">
+<span id="pegg-prime"></span><h2>pegg.prime<a class="headerlink" href="#module-pegg.prime" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.PAM_finder">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">PAM_finder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.PAM_finder" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">PAM_finder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.PAM_finder" title="Link to this definition">¶</a></dt>
 <dd><p>Finds indeces of PAM sequences in sequence.</p>
+<section id="parameters">
+<h3>Parameters<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>seq</dt><dd><p><em>type = str</em></p>
 <p>Sequence to search for PAM sequences.</p>
@@ -147,24 +221,30 @@ H = [A|C|T]
 V = [A|C|G]</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.RF_score">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">RF_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.RF_score" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">RF_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.RF_score" title="Link to this definition">¶</a></dt>
 <dd><p>Function for calculating the Random Forest score from pegRNA parameters.</p>
+<section id="id1">
+<h3>Parameters<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>Dataframe containing the pegRNAs generated by run().</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.clinvar_VCF_translator">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">clinvar_VCF_translator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variation_ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.clinvar_VCF_translator" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">clinvar_VCF_translator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variation_ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.clinvar_VCF_translator" title="Link to this definition">¶</a></dt>
 <dd><p>Function that takes a clinvar.vcf.gz file containing information about variants, as well as a list of variation ID numbers,
 and returns a pandas dataframe containing the variants in a format that can be used by PEGG to design pegRNAs.</p>
+<section id="id2">
+<h3>Parameters<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>filepath</dt><dd><p><em>type = str</em></p>
 <p>Filepath to the clinvar.vcf.gz file.</p>
@@ -173,13 +253,16 @@ and returns a pandas dataframe containing the variants in a format that can be u
 <p>List of variation IDs that the user wants to convert to .</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.df_formatter">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">df_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.df_formatter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">df_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.df_formatter" title="Link to this definition">¶</a></dt>
 <dd><p>Takes in variants (in cBioPortal format!) and outputs dataframe with REF and ALT oligos with designated context_size
 that can be used by PEGG for creating pegRNAs.</p>
+<section id="id3">
+<h3>Parameters<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>The dataframe of input variants in cBioPortal format.</p>
@@ -192,13 +275,16 @@ that can be used by PEGG for creating pegRNAs.</p>
 Default = 120. e.g. AAA(A/G)AAA = context_size of 3</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.eligible_PAM_finder">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">eligible_PAM_finder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_RTT_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.eligible_PAM_finder" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">eligible_PAM_finder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_RTT_length</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.eligible_PAM_finder" title="Link to this definition">¶</a></dt>
 <dd><p>Determines eligible PAM sequences for creating pegRNAs.
 Returns PAM sequence locations on (1) forward, and (2) reverse-complement strand</p>
+<section id="id4">
+<h3>Parameters<a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>mut</dt><dd><p><em>type = mutation class</em></p>
 <p>See class: mutation</p>
@@ -224,30 +310,34 @@ V = [A|C|G]</p>
 <p>Size of protospacer being used. Default = 19 (G+19).</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.genome_loader">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">genome_loader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath_gz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.genome_loader" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">genome_loader</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath_gz</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.genome_loader" title="Link to this definition">¶</a></dt>
 <dd><p>Takes in filepath of human or mouse genome and returns dictionary of chromosome sequences that PEGG can parse.
 Tested only on human and mouse genomes.</p>
 <p>Returns (1) chromosome dictionary, and (2) file names of the chromosomes that are stored (for manual checking of errors).</p>
+<section id="id5">
+<h3>Parameters<a class="headerlink" href="#id5" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>filepath_gz</dt><dd><p><em>type = str</em></p>
 <p>The filepath to the .gz file holding the reference genome file.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.goldengate_oligos">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">goldengate_oligos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">peg_df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.goldengate_oligos" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">goldengate_oligos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">peg_df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.goldengate_oligos" title="Link to this definition">¶</a></dt>
 <dd><p>Currently a place-holder. Going to implement automated Golden Gate oligo generator (so scaffold doesn’t need to be synthesized).</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.input_formatter">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">input_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.input_formatter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">input_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_size</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.input_formatter" title="Link to this definition">¶</a></dt>
 <dd><p>Master function for putting input mutations in the correct format for pegRNA/gRNA design.</p>
 <dl>
 <dt>input_df</dt><dd><p><em>type = pd.DataFrame</em></p>
@@ -269,15 +359,17 @@ Default = 120. e.g. AAA(A/G)AAA = context_size of 3</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.make_aligner">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">make_aligner</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.make_aligner" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">make_aligner</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.make_aligner" title="Link to this definition">¶</a></dt>
 <dd><p>Aligner function from Bio.Align.PairwiseAligner with custom parameters.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.mut_formatter">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">mut_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.mut_formatter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">mut_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.mut_formatter" title="Link to this definition">¶</a></dt>
 <dd><p>Formats mutations for pegRNA generation. Takes in WT and ALT sequences, returns necessary parameters for gRNA/pegRNA generation.
 Note: This function will break with INDELs and complex variants since it relies on a simple alignment.</p>
+<section id="id6">
+<h3>Parameters<a class="headerlink" href="#id6" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>wt</dt><dd><p><em>type = str</em></p>
 <p>WT sequence</p>
@@ -286,25 +378,49 @@ Note: This function will break with INDELs and complex variants since it relies 
 <p>Mutant/alternate sequence.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="pegg.prime.mutation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">mutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wt_w_context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_w_context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left_seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.mutation" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">mutation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">wt_w_context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_w_context</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left_seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_type</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_seq</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.mutation" title="Link to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class for storing information about individual mutations. Used by functions throughout.
 Prevents the use of disorganized lists.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pegg.prime.mutation.genomic_positions">
+<span class="sig-name descname"><span class="pre">genomic_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">orientation</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.mutation.genomic_positions" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the genomic coordinate of every base of the sequence used for
+pegRNA design in the given orientation, or None if this mutation carries
+no genomic annotation.</p>
+<p>For the ‘+’ orientation the sequence is wt_forward, which runs along the
+chromosome, so base i sits at genomic_start + i.</p>
+<p>For the ‘-’ orientation the sequence is wt_rc, the reverse complement, so
+its bases run backwards along the chromosome: base i of wt_rc is base
+(L - 1 - i) of wt_forward, and therefore sits at
+genomic_start + (L - 1 - i).</p>
+<section id="id7">
+<h3>Parameters<a class="headerlink" href="#id7" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>orientation</dt><dd><p><em>type = str</em></p>
+<p>‘+’ or ‘-’; which of wt_forward / wt_rc the coordinates are wanted
+for. This is the PAM strand, not the transcript strand.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.ontarget_score">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">ontarget_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.ontarget_score" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">ontarget_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.ontarget_score" title="Link to this definition">¶</a></dt>
 <dd><p>Calls to crisporEffScores (taken from CRISPOR github) to generate on-target scores using Rule Set 2.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.other_filtration">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">other_filtration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pegRNA_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RE_sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyT_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.other_filtration" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">other_filtration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pegRNA_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RE_sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyT_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.other_filtration" title="Link to this definition">¶</a></dt>
 <dd><p>Determines whether pegRNAs contain polyT termination sites or Restriction Enzyme Sites. Returns pegRNA_df with properties added.
 Note: RE_sites requires only A, T, C, or G bases (Ns will not work currently; need to do custom filtration)…
 These properties are checking for:</p>
@@ -312,6 +428,8 @@ These properties are checking for:</p>
 <li><p>u6 terminator (polyT sequence)</p></li>
 <li><p>RE site presence</p></li>
 </ol>
+<section id="id8">
+<h3>Parameters<a class="headerlink" href="#id8" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>pegRNA_df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>A dataframe containing the pegRNAs for the selected input mutations. Generated by run() or pegRNA_generator()</p>
@@ -323,12 +441,25 @@ These properties are checking for:</p>
 <p>The length of the polyT sequence to classify as a terminator. Default = 4.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.pegRNA_generator">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">pegRNA_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RTT_lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PBS_lengths</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.pegRNA_generator" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">pegRNA_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RTT_lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PBS_lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent_bystander</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent_per_mut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ORF_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bystander_window_nt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_bystander_muts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splice_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.pegRNA_generator" title="Link to this definition">¶</a></dt>
 <dd><p>Generates pegRNAs for a given mutation.</p>
+<p>When silent_bystander is True, each pegRNA is additionally emitted with up to
+silent_per_mut variants of its RTT that carry synonymous (“silent”) mutations
+alongside the intended edit. The original pegRNA is always kept, so the two
+designs can be compared; the has_silent_bystander column distinguishes them.</p>
+<p>Note that a silent bystander can knock out the PAM as well, so PAM disruption
+is reported three ways: PAM_disrupted (disrupted by either cause – this is
+what the scoring functions read, since it is what matters biologically),
+PAM_disrupted_edit (by the intended edit alone, which is what PAM_disrupted
+meant before silent bystanders were added), and PAM_disrupted_by_bystander
+(by a silent bystander alone).</p>
+<section id="id9">
+<h3>Parameters<a class="headerlink" href="#id9" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>mut</dt><dd><p><em>type = mutation class</em></p>
 <p>See class: mutation</p>
@@ -348,7 +479,7 @@ H = [A|C|T]
 V = [A|C|G]</p>
 </dd>
 <dt>orientation</dt><dd><p><em>type = str</em></p>
-<p>‘+’ or ‘-‘</p>
+<p>‘+’ or ‘-’</p>
 </dd>
 <dt>proto_size</dt><dd><p><em>type = int</em></p>
 <p>Size of protospacer being used. Default = 19 (G+19).</p>
@@ -359,25 +490,59 @@ V = [A|C|G]</p>
 <dt>PBS_length</dt><dd><p><em>type = list</em></p>
 <p>List containing PBS lengths to desing pegRNAs for.</p>
 </dd>
+<dt>silent_bystander</dt><dd><p><em>type = bool</em></p>
+<p>True/False whether to additionally generate pegRNAs carrying silent
+bystander mutations. Default = False.</p>
+</dd>
+<dt>silent_per_mut</dt><dd><p><em>type = int</em></p>
+<p>How many silent bystander variants to keep per pegRNA (i.e. per
+PAM site x RTT length x PBS length). Chosen at random from the viable
+options. Default = 2.</p>
+</dd>
+<dt>frame_mode</dt><dd><p><em>type = str or None</em></p>
+<p>‘cds’ or ‘orf’; see bystander.resolve_frame_source().</p>
+</dd>
+<dt>ORF_start</dt><dd><p><em>type = int or None</em></p>
+<p>Frame offset within the design sequence, for ‘orf’ mode.</p>
+</dd>
+<dt>bystander_window_nt</dt><dd><p><em>type = int</em></p>
+<p>How far from the edit silent mutations may be placed. Default = 5.</p>
+</dd>
+<dt>max_bystander_muts</dt><dd><p><em>type = int</em></p>
+<p>Maximum number of silent changes per pegRNA. Default = 2.</p>
+</dd>
+<dt>splice_buffer</dt><dd><p><em>type = int</em></p>
+<p>Minimum distance to keep from an exon boundary. Default = 3.</p>
+</dd>
+<dt>rng</dt><dd><p><em>type = numpy.random.Generator or None</em></p>
+<p>Random generator used to sample which bystander options to keep. Pass a
+seeded generator for reproducible libraries.</p>
+</dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.peggscore2">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">peggscore2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.peggscore2" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">peggscore2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.peggscore2" title="Link to this definition">¶</a></dt>
 <dd><p>Function for calculating the PEGG2 Score. A multiple linear regression score based on pegRNA parameters.</p>
+<section id="id10">
+<h3>Parameters<a class="headerlink" href="#id10" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>Dataframe containing the pegRNAs generated by run().</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.prime_oligo_generator">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">prime_oligo_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">peg_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epeg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epeg_motif</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tevopreQ1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">five_prime_adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AGCGTACACGTCTCACACC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">three_prime_adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GAATTCTAGATCCGGTCGTCAAC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gRNA_scaff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGC'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.prime_oligo_generator" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">prime_oligo_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">peg_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epeg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">epeg_motif</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tevopreQ1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">five_prime_adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AGCGTACACGTCTCACACC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">three_prime_adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GAATTCTAGATCCGGTCGTCAAC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gRNA_scaff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGC'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.prime_oligo_generator" title="Link to this definition">¶</a></dt>
 <dd><p>A tool for automatically generating oligos from the output of run().
 Returns input dataframe with new columns containing the pegRNA oligo.</p>
+<section id="id11">
+<h3>Parameters<a class="headerlink" href="#id11" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>peg_df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>A dataframe containing the pegRNAs for the selected input mutations. Generated by run() or pegRNA_generator()</p>
@@ -402,24 +567,30 @@ whatever input string user wants.</p>
 whatever input string user wants.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.primedesign_formatter">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">primedesign_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.primedesign_formatter" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">primedesign_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seq</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.primedesign_formatter" title="Link to this definition">¶</a></dt>
 <dd><p>Takes as input sequence in prime design format e.g. AATTCCG(G/C)AATTCGCT. Returns necessary parameters for pegRNA generation.</p>
+<section id="id12">
+<h3>Parameters<a class="headerlink" href="#id12" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>seq</dt><dd><p><em>type = str</em></p>
 <p>The PrimeDesign formatted sequence.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.run">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NGG'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rankby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PEGG2_Score'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pegRNAs_per_mut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'All'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RTT_lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[5,</span> <span class="pre">10,</span> <span class="pre">15,</span> <span class="pre">25,</span> <span class="pre">30]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PBS_lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[8,</span> <span class="pre">10,</span> <span class="pre">13,</span> <span class="pre">15]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_RHA_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RE_sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyT_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before_proto_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reverse-complement'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.run" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NGG'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rankby</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'PEGG2_Score'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pegRNAs_per_mut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'All'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RTT_lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[5,</span> <span class="pre">10,</span> <span class="pre">15,</span> <span class="pre">25,</span> <span class="pre">30]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PBS_lengths</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[8,</span> <span class="pre">10,</span> <span class="pre">13,</span> <span class="pre">15]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_RHA_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RE_sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyT_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before_proto_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reverse-complement'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent_bystander</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent_per_mut</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript_strand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ORF_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bystander_window_nt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_bystander_muts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splice_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.run" title="Link to this definition">¶</a></dt>
 <dd><p>Master function for generating pegRNAs. Takes as input a dataframe containing mutations in one of the acceptable formats.
 Returns a dataframe with pegRNAs with desired design parameters.</p>
+<section id="id13">
+<h3>Parameters<a class="headerlink" href="#id13" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>input_df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>Pandas dataframe that contains the input mutations.</p>
@@ -475,15 +646,71 @@ Default = 120. e.g. AAA(A/G)AAA = context_size of 3</p>
 <dt>sensor</dt><dd><p><em>type = bool</em></p>
 <p>True/False whether to include a sensor in the pegRNA design or not.</p>
 </dd>
+<dt>silent_bystander</dt><dd><p><em>type = bool</em></p>
+<p>True/False whether to additionally design pegRNAs carrying synonymous
+(“silent”) bystander mutations alongside the intended edit. Default =
+False, in which case none of the parameters below have any effect and
+the output is unchanged.</p>
+<p>When True, the output contains BOTH the ordinary pegRNAs and the
+bystander-carrying ones, distinguished by the has_silent_bystander
+column, so that users can filter to either set afterwards.</p>
+<p>Requires reading frame information, which differs by input format:
+‘cBioPortal’ needs start_end_cds + transcript_strand; ‘WT_ALT’ and
+‘PrimeDesign’ need ORF_start, and the input sequence must be in frame.
+See pegg.bystander for details.</p>
+</dd>
+<dt>silent_per_mut</dt><dd><p><em>type = int</em></p>
+<p>How many silent bystander designs to keep per pegRNA, i.e. per
+PAM site x RTT length x PBS length. Chosen at random from the viable
+options. Default = 2, so a pegRNA with bystanders available contributes
+three rows: itself, plus two bystander variants.</p>
+</dd>
+<dt>transcript_strand</dt><dd><p><em>type = str or None</em></p>
+<p>‘+’ or ‘-’; the strand the transcript is on. Required for ‘cBioPortal’
+input when silent_bystander=True. Note this is independent of the strand
+a given pegRNA’s PAM falls on.</p>
+</dd>
+<dt>start_end_cds</dt><dd><p><em>type = list or None</em></p>
+<p>A 2-d list containing the start/end locations of each region of the
+coding sequence (CDS) for the gene’s selected transcript, ordered in the
++ strand orientation, 1-based and inclusive. Same format as used by
+library.neutral_substitutions(). Required for ‘cBioPortal’ input when
+silent_bystander=True.</p>
+</dd>
+<dt>ORF_start</dt><dd><p><em>type = int or None</em></p>
+<p>0, 1 or 2: the offset within the input sequence at which the reading
+frame begins. Required for ‘WT_ALT’ and ‘PrimeDesign’ input when
+silent_bystander=True, in which case the input sequence must be entirely
+coding sequence.</p>
+</dd>
+<dt>bystander_window_nt</dt><dd><p><em>type = int</em></p>
+<p>How far from the edit, in nt, silent mutations may be placed.
+Default = 5.</p>
+</dd>
+<dt>max_bystander_muts</dt><dd><p><em>type = int</em></p>
+<p>Maximum number of silent changes carried by one pegRNA. Default = 2.</p>
+</dd>
+<dt>splice_buffer</dt><dd><p><em>type = int</em></p>
+<p>Minimum distance to keep from an exon boundary, to avoid disrupting a
+splice donor or acceptor. Only enforced for ‘cBioPortal’ input, where
+exon boundaries are known. Default = 3.</p>
+</dd>
+<dt>seed</dt><dd><p><em>type = int or None</em></p>
+<p>Seed for the random selection of bystander designs. Pass an integer to
+make a library reproducible. Default = None (different each run).</p>
+</dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.sensor_generator">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">sensor_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before_proto_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reverse-complement'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.sensor_generator" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">sensor_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before_proto_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reverse-complement'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.sensor_generator" title="Link to this definition">¶</a></dt>
 <dd><p>Generates sensor sequence for quantification of pegRNA editing outcomes.
 Automatically puts sensor in reverse complement orientation with respect to protospacer.
 This is highly reccomended to reduce recombination during cloning/library preparation.</p>
+<section id="id14">
+<h3>Parameters<a class="headerlink" href="#id14" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>Dataframe containing pegRNAs.</p>
@@ -501,13 +728,16 @@ This is highly reccomended to reduce recombination during cloning/library prepar
 <p>Options for sensor_orientation = ‘reverse-complement’ or’forward’.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.sensor_viz">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">sensor_viz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_w_sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.sensor_viz" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">sensor_viz</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_w_sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.sensor_viz" title="Link to this definition">¶</a></dt>
 <dd><p>Function for visualizing the pegRNA aligned to the sensor. Input = dataframe with pegRNA-sensor pairs
 and the row index (i) to visualize.</p>
+<section id="id15">
+<h3>Parameters<a class="headerlink" href="#id15" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>df_w_sensor</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>Dataframe containing the pegRNA-sensor pairs generated by run().</p>
@@ -516,22 +746,25 @@ and the row index (i) to visualize.</p>
 <p>Row index from the dataframe that you want to visualize.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.prime.split_word">
-<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">split_word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">word</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.split_word" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">split_word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">word</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.split_word" title="Link to this definition">¶</a></dt>
 <dd><p>Simple function for splitting string into component characters</p>
 </dd></dl>
 
-</div>
-<div class="section" id="module-pegg.base">
-<span id="pegg-base"></span><h2>pegg.base<a class="headerlink" href="#module-pegg.base" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="module-pegg.base">
+<span id="pegg-base"></span><h2>pegg.base<a class="headerlink" href="#module-pegg.base" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.base.base_oligo_generator">
-<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">base_oligo_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">peg_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">five_prime_adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AGCGTACACGTCTCACACC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">three_prime_adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GAATTCTAGATCCGGTCGTCAAC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gRNA_scaff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGC'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.base_oligo_generator" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">base_oligo_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">peg_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">five_prime_adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'AGCGTACACGTCTCACACC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">three_prime_adapter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GAATTCTAGATCCGGTCGTCAAC'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gRNA_scaff</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GTTTTAGAGCTAGAAATAGCAAGTTAAAATAAGGCTAGTCCGTTATCAACTTGAAAAAGTGGCACCGAGTCGGTGC'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.base_oligo_generator" title="Link to this definition">¶</a></dt>
 <dd><p>A tool for automatically generating oligos from the output of run().
 Returns input dataframe with new columns containing gRNA oligo with or without sensor.</p>
+<section id="id16">
+<h3>Parameters<a class="headerlink" href="#id16" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>peg_df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>A dataframe containing the gRNAs for the selected input mutations. Generated by run_base() or gRNA_generator()</p>
@@ -549,13 +782,16 @@ whatever input string user wants.</p>
 whatever input string user wants.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.base.eligible_PAM_finder_base">
-<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">eligible_PAM_finder_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.eligible_PAM_finder_base" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">eligible_PAM_finder_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.eligible_PAM_finder_base" title="Link to this definition">¶</a></dt>
 <dd><p>Determines eligible PAM sequences for creating gRNAs.
 Returns PAM sequence locations on (1) forward, and (2) reverse-complement strand</p>
+<section id="id17">
+<h3>Parameters<a class="headerlink" href="#id17" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>mut</dt><dd><p><em>type = mutation class</em></p>
 <p>See class: mutation</p>
@@ -578,12 +814,15 @@ V = [A|C|G]</p>
 <p>Size of protospacer being used. Default = 19 (G+19).</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.base.gRNA_generator">
-<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">gRNA_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_edit_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[4,</span> <span class="pre">8]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.gRNA_generator" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">gRNA_generator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orientation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_edit_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[4,</span> <span class="pre">8]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.gRNA_generator" title="Link to this definition">¶</a></dt>
 <dd><p>Generates pegRNAs for a given mutation.</p>
+<section id="id18">
+<h3>Parameters<a class="headerlink" href="#id18" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>mut</dt><dd><p><em>type = mutation class</em></p>
 <p>See class: mutation</p>
@@ -603,7 +842,7 @@ H = [A|C|T]
 V = [A|C|G]</p>
 </dd>
 <dt>orientation</dt><dd><p><em>type = str</em></p>
-<p>‘+’ or ‘-‘</p>
+<p>‘+’ or ‘-’</p>
 </dd>
 <dt>proto_size</dt><dd><p><em>type = int</em></p>
 <p>Size of protospacer being used. Default = 19 (G+19).</p>
@@ -613,13 +852,16 @@ V = [A|C|G]</p>
 future filtration if desired.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.base.run_base">
-<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">run_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NGG'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filtration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ABE+CBE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_edit_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[4,</span> <span class="pre">8]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_SNP_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RE_sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyT_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before_proto_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reverse-complement'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.run_base" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">run_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NGG'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filtration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ABE+CBE'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ideal_edit_window</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">[4,</span> <span class="pre">8]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">auto_SNP_filter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">19</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RE_sites</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">polyT_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before_proto_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">40</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reverse-complement'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.run_base" title="Link to this definition">¶</a></dt>
 <dd><p>Master function for generating base editing gRNAs. Takes as input a dataframe containing mutations in one of the acceptable formats.
 Returns a dataframe with gRNAs with desired design parameters.</p>
+<section id="id19">
+<h3>Parameters<a class="headerlink" href="#id19" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>input_df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>Pandas dataframe that contains the input mutations.</p>
@@ -671,14 +913,17 @@ Default = 120. e.g. AAA(A/G)AAA = context_size of 3</p>
 <p>True/False whether to include a sensor in the pegRNA design or not.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.base.sensor_generator_base">
-<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">sensor_generator_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before_proto_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reverse-complement'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.sensor_generator_base" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">sensor_generator_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">proto_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">before_proto_context</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">60</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sensor_orientation</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'reverse-complement'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.sensor_generator_base" title="Link to this definition">¶</a></dt>
 <dd><p>Generates sensor sequence for quantification of gRNA editing outcomes.
 Automatically puts sensor in reverse complement orientation with respect to protospacer.
 This is highly reccomended to reduce recombination during cloning/library preparation.</p>
+<section id="id20">
+<h3>Parameters<a class="headerlink" href="#id20" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>df</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>Dataframe containing gRNAs.</p>
@@ -696,13 +941,16 @@ This is highly reccomended to reduce recombination during cloning/library prepar
 <p>Options for sensor_orientation = ‘reverse-complement’ or’forward’.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.base.sensor_viz_base">
-<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">sensor_viz_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_w_sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.sensor_viz_base" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">sensor_viz_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df_w_sensor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.sensor_viz_base" title="Link to this definition">¶</a></dt>
 <dd><p>Function for visualizing the gRNA aligned to the sensor. Input = dataframe with pegRNA-sensor pairs
 and the row index (i) to visualize.</p>
+<section id="id21">
+<h3>Parameters<a class="headerlink" href="#id21" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>df_w_sensor</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>Dataframe containing the gRNA-sensor pairs generated by run().</p>
@@ -711,24 +959,735 @@ and the row index (i) to visualize.</p>
 <p>Row index from the dataframe that you want to visualize.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.base.split_word">
-<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">split_word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">word</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.split_word" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.base.</span></span><span class="sig-name descname"><span class="pre">split_word</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">word</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.base.split_word" title="Link to this definition">¶</a></dt>
 <dd><p>Simple function for splitting string into component characters</p>
 </dd></dl>
 
+</section>
+<section id="module-pegg.bystander">
+<span id="pegg-bystander"></span><h2>pegg.bystander<a class="headerlink" href="#module-pegg.bystander" title="Link to this heading">¶</a></h2>
+<p>Silent bystander mutations for pegRNA design.</p>
+<p>Adds synonymous (“silent”) mutations into the RTT of a pegRNA, alongside the
+intended edit. Silent changes near the edit help evade mismatch repair (MMR) and,
+when they happen to fall in the PAM or seed, also reduce re-nicking of the edited
+allele – both of which can substantially increase prime editing efficiency.</p>
+<p>This is conceptually similar to the silent-bystander addon of PRIDICT2.0
+(<a class="reference external" href="https://github.com/uzh-dqbm-cmi/PRIDICT2">https://github.com/uzh-dqbm-cmi/PRIDICT2</a>): synonymous codon substitutions are
+enumerated in a window around the edit. PRIDICT2.0 then ranks them with a deep
+model; here they are handed back to PEGG’s own pipeline so that they can be
+generated at library scale.</p>
+<p>Everything in this module is opt-in. Ordinary pegRNA design is unaffected by it
+and needs no reading frame information; the requirements below apply only when
+silent bystanders are requested, via prime.run(…, silent_bystander=True).</p>
+<section id="reading-frame">
+<h3>Reading frame<a class="headerlink" href="#reading-frame" title="Link to this heading">¶</a></h3>
+<p>Every option returned is verified synonymous against an explicit reading frame,
+which must be supplied by the caller. Two things make this less trivial than it
+looks, and both are handled here:</p>
+<ol class="arabic simple">
+<li><p>The RTT is stored in the PAM-strand orientation. When the transcript runs on
+the opposite strand, codons must be read on the reverse complement, and the
+frame anchor has to be translated along with the sequence – the phase of
+work_seq[0] is not the phase of RTT_fwd[0]. See reverse_frame_anchor().</p></li>
+<li><p>Downstream of an insertion or deletion the reading frame is shifted, so
+“synonymous” is only well defined there if the net length change is a
+multiple of three. Codons that fall downstream of a frameshifting indel are
+excluded rather than guessed at.</p></li>
+</ol>
+</section>
+<section id="input-formats">
+<h3>Input formats<a class="headerlink" href="#input-formats" title="Link to this heading">¶</a></h3>
+<p>PEGG accepts three input formats. They do not all support silent bystanders
+equally, because they do not all carry genomic coordinates:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cBioPortal</span>   <span class="n">Coordinates</span> <span class="n">are</span> <span class="n">available</span><span class="p">,</span> <span class="n">so</span> <span class="n">the</span> <span class="n">reading</span> <span class="n">frame</span> <span class="ow">is</span> <span class="n">looked</span> <span class="n">up</span>
+             <span class="n">per</span> <span class="n">position</span> <span class="kn">from</span> <span class="nn">a</span> <span class="n">CDS</span> <span class="n">annotation</span> <span class="p">(</span><span class="n">start_end_cds</span> <span class="o">+</span>
+             <span class="n">transcript_strand</span><span class="p">)</span><span class="o">.</span> <span class="n">CDS</span> <span class="n">membership</span> <span class="ow">and</span> <span class="n">splice</span><span class="o">-</span><span class="n">site</span> <span class="n">distance</span> <span class="n">are</span>
+             <span class="n">both</span> <span class="n">enforced</span><span class="o">.</span> <span class="n">Full</span> <span class="n">support</span><span class="o">.</span>
+
+<span class="n">WT_ALT</span>       <span class="n">No</span> <span class="n">coordinates</span><span class="o">.</span> <span class="n">The</span> <span class="n">reading</span> <span class="n">frame</span> <span class="n">must</span> <span class="n">be</span> <span class="n">declared</span> <span class="k">with</span>
+<span class="n">PrimeDesign</span>  <span class="n">ORF_start</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="ow">or</span> <span class="mi">2</span><span class="p">),</span> <span class="ow">and</span> <span class="n">THE</span> <span class="n">INPUT</span> <span class="n">SEQUENCE</span> <span class="n">MUST</span> <span class="n">BE</span> <span class="n">IN</span> <span class="n">FRAME</span>
+             <span class="o">--</span> <span class="n">entirely</span> <span class="n">coding</span> <span class="n">sequence</span><span class="p">,</span> <span class="k">with</span> <span class="n">the</span> <span class="n">frame</span> <span class="n">beginning</span> <span class="n">at</span> <span class="n">offset</span>
+             <span class="n">ORF_start</span><span class="o">.</span> <span class="n">CDS</span> <span class="n">membership</span> <span class="ow">and</span> <span class="n">splice</span> <span class="n">sites</span> <span class="n">cannot</span> <span class="n">be</span> <span class="n">checked</span> <span class="ow">in</span>
+             <span class="n">this</span> <span class="n">mode</span><span class="p">,</span> <span class="n">so</span> <span class="n">a</span> <span class="n">sequence</span> <span class="n">containing</span> <span class="n">intronic</span> <span class="ow">or</span> <span class="n">untranslated</span>
+             <span class="n">bases</span> <span class="n">would</span> <span class="n">produce</span> <span class="n">bystanders</span> <span class="n">that</span> <span class="n">are</span> <span class="n">silent</span> <span class="n">only</span> <span class="ow">in</span>
+             <span class="n">appearance</span><span class="o">.</span> <span class="n">Use</span> <span class="n">cBioPortal</span> <span class="nb">input</span> <span class="k">for</span> <span class="n">anything</span> <span class="n">spanning</span> <span class="n">a</span> <span class="n">splice</span>
+             <span class="n">junction</span><span class="o">.</span>
+</pre></div>
 </div>
-<div class="section" id="module-pegg.library">
-<span id="pegg-library"></span><h2>pegg.library<a class="headerlink" href="#module-pegg.library" title="Permalink to this heading">¶</a></h2>
+<p>Again, none of this constrains ordinary pegRNA design: a sequence that is not in
+frame, or not coding at all, is designed against exactly as before – it simply
+cannot carry silent bystanders. resolve_frame_source() enforces these
+requirements rather than guessing, and only when the feature is switched on.</p>
+</section>
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.add_cds_to_variants">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">add_cds_to_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'tx_id_h'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gene_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.add_cds_to_variants" title="Link to this definition">¶</a></dt>
+<dd><p>Attaches reading frame information to a variant table, one transcript per
+row, and returns (annotated_df, cds_lookup).</p>
+<p>The returned dataframe gains ‘transcript_strand’, ‘cds_valid’ and
+‘cds_n_codons’ columns, and cds_lookup maps each transcript id to its CDS
+blocks. Together these are what prime.run(silent_bystander=True) needs, and
+they keep each variant tied to the transcript it was annotated against –
+which matters when a library spans several genes, since the reading frame
+belongs to one transcript and cannot be shared between them.</p>
+<p>Typical use, starting from H2M:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">df</span><span class="p">,</span> <span class="n">df_fail</span> <span class="o">=</span> <span class="n">h2m</span><span class="o">.</span><span class="n">get_tx_batch</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">,</span> <span class="n">ver</span><span class="o">=</span><span class="mi">37</span><span class="p">)</span>
+<span class="n">df</span><span class="p">,</span> <span class="n">cds_lookup</span> <span class="o">=</span> <span class="n">bystander</span><span class="o">.</span><span class="n">add_cds_to_variants</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">db_h</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">tx</span><span class="p">,</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;tx_id_h&#39;</span><span class="p">):</span>
+    <span class="n">ann</span> <span class="o">=</span> <span class="n">cds_lookup</span><span class="p">[</span><span class="n">tx</span><span class="p">]</span>
+    <span class="n">peg</span> <span class="o">=</span> <span class="n">prime</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">sub</span><span class="p">,</span> <span class="s1">&#39;cBioPortal&#39;</span><span class="p">,</span> <span class="n">chrom_dict</span><span class="o">=</span><span class="n">chrom_dict</span><span class="p">,</span>
+                    <span class="n">silent_bystander</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">transcript_strand</span><span class="o">=</span><span class="n">ann</span><span class="p">[</span><span class="s1">&#39;strand&#39;</span><span class="p">],</span>
+                    <span class="n">start_end_cds</span><span class="o">=</span><span class="n">ann</span><span class="p">[</span><span class="s1">&#39;cds&#39;</span><span class="p">],</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id22">
+<h3>Parameters<a class="headerlink" href="#id22" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>df</dt><dd><p><em>type = pd.DataFrame</em></p>
+<p>Variant table carrying a transcript id column.</p>
+</dd>
+<dt>db</dt><dd><p><em>type = gffutils.FeatureDB</em></p>
+<p>Annotation database; must be the same genome build as the variants.</p>
+</dd>
+<dt>tx_column</dt><dd><p><em>type = str</em></p>
+<p>Column holding the transcript id. Default = ‘tx_id_h’ (H2M’s human
+output); use ‘tx_id_m’ for mouse.</p>
+</dd>
+<dt>gene_column</dt><dd><p><em>type = str or None</em></p>
+<p>Gene name column, used only to make the summary printout more readable.
+Default = None.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.canonical_transcript">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">canonical_transcript</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gene</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'human'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">37</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.canonical_transcript" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the canonical transcript id of one gene, or None if the gene is not
+in the table.</p>
+<section id="id23">
+<h3>Parameters<a class="headerlink" href="#id23" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>gene</dt><dd><p><em>type = str</em></p>
+<p>Gene name, e.g. ‘TP53’.</p>
+</dd>
+<dt>species</dt><dd><p><em>type = str</em></p>
+<p>‘human’ or ‘mouse’. Default = ‘human’.</p>
+</dd>
+<dt>genome_version</dt><dd><p><em>type = int</em></p>
+<p>37 or 38, for human. Default = 37.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.canonical_transcripts">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">canonical_transcripts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'human'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">37</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.canonical_transcripts" title="Link to this definition">¶</a></dt>
+<dd><p>Returns {gene_name: transcript_id}, the canonical transcript of each gene.</p>
+<p>The table is the one H2M uses, bundled here so that pegg needs no dependency
+on H2M. Using the canonical transcript matters because variant annotation
+(HGVSp_Short, protein position) is generally computed against it: designing
+against a different transcript can shift the reading frame and make the
+protein-level labels disagree with what was actually designed.</p>
+<section id="id24">
+<h3>Parameters<a class="headerlink" href="#id24" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>species</dt><dd><p><em>type = str</em></p>
+<p>‘human’ or ‘mouse’. Default = ‘human’.</p>
+</dd>
+<dt>genome_version</dt><dd><p><em>type = int</em></p>
+<p>37 or 38, for human. Ignored for mouse. Default = 37.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.cds_annotation_report">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">cds_annotation_report</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gene_cds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mutations</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gene_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Hugo_Symbol'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.cds_annotation_report" title="Link to this definition">¶</a></dt>
+<dd><p>Checks a CDS annotation dict before it is used for design, and returns a
+dataframe summarising it. Catches the mistakes that would otherwise only
+surface as silently wrong bystanders:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>a CDS whose length is not a multiple of three (wrong or partial transcript)</p></li>
+<li><p>overlapping CDS blocks</p></li>
+<li><p>a gene in the variant table with no annotation (gets no bystanders)</p></li>
+<li><p>variants that fall outside the CDS of their own gene (also get none)</p></li>
+</ul>
+</div></blockquote>
+<section id="id25">
+<h3>Parameters<a class="headerlink" href="#id25" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>gene_cds</dt><dd><p><em>type = dict</em></p>
+<p>{gene: {‘strand’: …, ‘cds’: [[start, end], …]}}, as produced by
+cds_from_gtf() or written by hand.</p>
+</dd>
+<dt>mutations</dt><dd><p><em>type = pd.DataFrame or None</em></p>
+<p>The input variant table, to cross-check gene coverage and whether each
+variant lies inside its gene’s CDS. Default = None (skip that check).</p>
+</dd>
+<dt>gene_column</dt><dd><p><em>type = str</em></p>
+<p>Column of the variant table holding the gene name.
+Default = ‘Hugo_Symbol’.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.cds_boundaries">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">cds_boundaries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.cds_boundaries" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the set of genomic positions that sit at the edge of a CDS block
+(i.e. immediately adjacent to an exon/intron junction). Used to keep silent
+bystanders away from splice donor/acceptor sites.</p>
+<section id="id26">
+<h3>Parameters<a class="headerlink" href="#id26" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>start_end_cds</dt><dd><p><em>type = list</em></p>
+<p>CDS blocks, 1-based inclusive, ordered in the + strand orientation.
+See cds_frame_map().</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.cds_codons">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">cds_codons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strand</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.cds_codons" title="Link to this definition">¶</a></dt>
+<dd><p>Groups a transcript’s CDS positions into codons. Returns a list of
+[pos1, pos2, pos3] triples in transcription order. A trailing partial codon
+(i.e. a CDS whose length is not a multiple of three) is dropped.</p>
+<section id="id27">
+<h3>Parameters<a class="headerlink" href="#id27" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>start_end_cds</dt><dd><p><em>type = list</em></p>
+<p>CDS blocks, 1-based inclusive, ordered in the + strand orientation.</p>
+</dd>
+<dt>strand</dt><dd><p><em>type = str</em></p>
+<p>Strand that the transcript is on. Options are ‘+’ or ‘-‘.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.cds_for_variants">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">cds_for_variants</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gene_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Hugo_Symbol'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx_column</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">species</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'human'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">37</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.cds_for_variants" title="Link to this definition">¶</a></dt>
+<dd><p>Resolves the reading frame for a variant table, working from the standard
+cBioPortal column names, and returns (annotated_df, cds_lookup).</p>
+<p>This is the batch entry point for cBioPortal-format input: it works from the
+gene names PEGG already uses (‘Hugo_Symbol’) rather than requiring H2M’s
+‘gene_name_h’ column, while still leaving the choice of transcript explicit.</p>
+<p>The transcript of each gene is its canonical transcript, from the curated
+table H2M uses (see canonical_transcripts()). This matters because variant
+annotation – HGVSp_Short, protein position – is generally computed against
+the canonical transcript, so designing against a different one can shift the
+reading frame and make those labels disagree with the design. Override per
+gene with transcript_ids, or use ids already in the table with tx_column.</p>
+<p>The returned dataframe gains ‘transcript_id’, ‘transcript_strand’,
+‘cds_valid’ and ‘cds_n_codons’; cds_lookup maps each gene to its CDS blocks.
+Genes that cannot be resolved are reported and simply get no bystanders.</p>
+<p>If a transcript id column is already present – for instance because
+h2m.get_tx_batch() was run first – pass tx_column to use those ids instead
+of choosing per gene.</p>
+<p>Typical use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">df</span><span class="p">,</span> <span class="n">cds_lookup</span> <span class="o">=</span> <span class="n">bystander</span><span class="o">.</span><span class="n">cds_for_variants</span><span class="p">(</span><span class="n">mutations</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">gene</span><span class="p">,</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">&#39;Hugo_Symbol&#39;</span><span class="p">):</span>
+    <span class="n">ann</span> <span class="o">=</span> <span class="n">cds_lookup</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">gene</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ann</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ann</span><span class="p">[</span><span class="s1">&#39;valid&#39;</span><span class="p">]:</span>
+        <span class="n">peg</span> <span class="o">=</span> <span class="n">prime</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">sub</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="s1">&#39;cBioPortal&#39;</span><span class="p">,</span>
+                        <span class="n">silent_bystander</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">transcript_strand</span><span class="o">=</span><span class="n">ann</span><span class="p">[</span><span class="s1">&#39;strand&#39;</span><span class="p">],</span>
+                        <span class="n">start_end_cds</span><span class="o">=</span><span class="n">ann</span><span class="p">[</span><span class="s1">&#39;cds&#39;</span><span class="p">],</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<section id="id28">
+<h3>Parameters<a class="headerlink" href="#id28" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>df</dt><dd><p><em>type = pd.DataFrame</em></p>
+<p>Variant table in cBioPortal format.</p>
+</dd>
+<dt>db</dt><dd><p><em>type = gffutils.FeatureDB</em></p>
+<p>Annotation database, e.g. gffutils.FeatureDB(path) or the object
+h2m.anno_loader(path) returns. Must be the same genome build as the
+variants.</p>
+</dd>
+<dt>gene_column</dt><dd><p><em>type = str</em></p>
+<p>Column holding the gene name. Default = ‘Hugo_Symbol’ (cBioPortal).</p>
+</dd>
+<dt>tx_column</dt><dd><p><em>type = str or None</em></p>
+<p>Column holding a transcript id, if the table already has one. H2M’s
+get_tx_batch() writes canonical ids into ‘tx_id_h’ / ‘tx_id_m’.
+Default = None, i.e. look the canonical transcript up per gene.</p>
+</dd>
+<dt>species</dt><dd><p><em>type = str</em></p>
+<p>‘human’ or ‘mouse’, for the canonical transcript table.
+Default = ‘human’.</p>
+</dd>
+<dt>genome_version</dt><dd><p><em>type = int</em></p>
+<p>37 or 38, matching the annotation database and the variant coordinates.
+Default = 37.</p>
+</dd>
+<dt>transcript_ids</dt><dd><p><em>type = dict or None</em></p>
+<p>{gene: transcript_id} overriding the canonical transcript for the genes
+it names. Default = None (use the canonical transcript throughout).</p>
+</dd>
+<dt>verbose</dt><dd><p><em>type = bool</em></p>
+<p>Whether to print a summary of what resolved and what did not.
+Default = True.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.cds_frame_map">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">cds_frame_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strand</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.cds_frame_map" title="Link to this definition">¶</a></dt>
+<dd><p>Builds a map from genomic position to codon phase for a transcript’s coding
+sequence. Returns a dict of {genomic_position: (codon_index, phase)} where
+codon_index counts codons from the start codon (0-based) and phase is the
+position within that codon (0, 1 or 2).</p>
+<p>Because the map is built by walking the CDS blocks in transcription order,
+codons split across an exon junction are handled correctly – something a
+naive (position % 3) calculation cannot do.</p>
+<section id="id29">
+<h3>Parameters<a class="headerlink" href="#id29" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>start_end_cds</dt><dd><p><em>type = list</em></p>
+<p>A 2-d list containing the start/end locations of each region of the
+coding sequence (CDS) for the gene’s selected transcript, ordered by
+position in the + strand orientation. Same format as used by
+library.neutral_substitutions(). e.g. [[7572930, 7573008], …]</p>
+</dd>
+<dt>strand</dt><dd><p><em>type = str</em></p>
+<p>Strand that the transcript is on. Options are ‘+’ or ‘-‘.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.cds_from_annotation_db">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">cds_from_annotation_db</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gene_or_tx</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.cds_from_annotation_db" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts CDS blocks and strand from a gffutils annotation database, e.g. the
+one H2M’s anno_loader() returns.</p>
+<p>Returns a dict with keys ‘strand’, ‘cds’, ‘chrom’, ‘transcript_id’,
+‘n_codons’ and ‘valid’ – the same shape as cds_from_gtf(), so it drops
+straight into prime.run().</p>
+<p>The CDS extraction follows H2M’s own GetTx(): the transcript’s CDS children
+are pulled in + strand order and used as the coding blocks. Reimplemented
+here rather than imported so that pegg keeps no dependency on H2M; gffutils
+is the only requirement, and only when this function is called.</p>
+<section id="id30">
+<h3>Parameters<a class="headerlink" href="#id30" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>db</dt><dd><p><em>type = gffutils.FeatureDB</em></p>
+<p>Annotation database, e.g. from gffutils.FeatureDB(path) or
+h2m.anno_loader(path). Must be the same genome build as the chrom_dict
+used for design.</p>
+</dd>
+<dt>gene_or_tx</dt><dd><p><em>type = str</em></p>
+<p>A transcript id (e.g. ‘ENST00000269305’), or a gene name / gene id, in
+which case the transcript with the longest CDS is used.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.cds_from_gtf">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">cds_from_gtf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript_ids</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">longest_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.cds_from_gtf" title="Link to this definition">¶</a></dt>
+<dd><p>Extracts CDS blocks per gene from a GTF/GFF annotation file, in the format
+prime.run() expects. Returns a dict of</p>
+<blockquote>
+<div><dl class="simple">
+<dt>{gene_name: {‘strand’: ‘+’/’-’, ‘cds’: [[start, end], …],</dt><dd><p>‘transcript_id’: str, ‘n_codons’: int, ‘valid’: bool}}</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Blocks are 1-based inclusive and ordered along the + strand, matching
+library.neutral_substitutions() and prime.run(start_end_cds=…).</p>
+<p>A gene typically has several transcripts, and the reading frame belongs to
+one of them, so exactly one has to be chosen. By default the transcript with
+the longest CDS is used; pass transcript_ids to choose explicitly.</p>
+<p>Note the chromosome names in the annotation must match the keys of the
+chrom_dict used for design (PEGG uses 1..22, ‘X’, ‘Y’); see
+cds_annotation_report() for a check of this and of frame validity.</p>
+<section id="id31">
+<h3>Parameters<a class="headerlink" href="#id31" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>filepath</dt><dd><p><em>type = str</em></p>
+<p>Path to a GTF or GFF3 file, optionally gzipped. Ensembl, GENCODE and
+NCBI RefSeq files all work.</p>
+</dd>
+<dt>genes</dt><dd><p><em>type = list or None</em></p>
+<p>Gene names to extract. Default = None (every gene in the file, which is
+slow and memory-hungry for a whole genome).</p>
+</dd>
+<dt>transcript_ids</dt><dd><p><em>type = dict or None</em></p>
+<p>{gene_name: transcript_id} to pin specific transcripts instead of taking
+the longest CDS. Default = None.</p>
+</dd>
+<dt>longest_only</dt><dd><p><em>type = bool</em></p>
+<p>Whether to reduce each gene to its longest-CDS transcript. Default =
+False, which returns every transcript keyed as “gene|transcript_id” so
+that the choice stays explicit – the reading frame belongs to one
+transcript, and picking the longest is a guess that can disagree with
+the canonical transcript a variant was annotated against.</p>
+<p>Pass transcript_ids={gene: id} to select transcripts by name; set this
+to True only if an arbitrary-but-reproducible choice is acceptable.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.cds_from_tx_ids">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">cds_from_tx_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tx_ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.cds_from_tx_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Looks up CDS blocks and strand for a set of transcript ids at once. Returns
+{tx_id: {‘strand’: …, ‘cds’: [[start, end], …], …}}, with one entry per
+transcript that could be resolved; transcripts that are missing from the
+annotation or have no CDS are skipped rather than raising.</p>
+<p>Designed to take the transcript ids that H2M’s get_tx_batch() attaches to a
+variant table, so that a library spanning many genes can be designed without
+naming transcripts one at a time.</p>
+<section id="id32">
+<h3>Parameters<a class="headerlink" href="#id32" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>db</dt><dd><p><em>type = gffutils.FeatureDB</em></p>
+<p>Annotation database, e.g. gffutils.FeatureDB(path) or the object
+h2m.anno_loader(path) returns.</p>
+</dd>
+<dt>tx_ids</dt><dd><p><em>type = iterable of str</em></p>
+<p>Transcript ids, e.g. list(df[‘tx_id_h’].unique()).</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.cds_positions">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">cds_positions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strand</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.cds_positions" title="Link to this definition">¶</a></dt>
+<dd><p>Flattens a transcript’s CDS blocks into a list of genomic positions in
+transcription order (i.e. reversed for a - strand transcript).</p>
+<p>This is the single walk that the rest of the frame handling is built on:
+cds_frame_map() indexes it by position, and library.neutral_substitutions()
+chunks it into codons.</p>
+<section id="id33">
+<h3>Parameters<a class="headerlink" href="#id33" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>start_end_cds</dt><dd><p><em>type = list</em></p>
+<p>A 2-d list containing the start/end locations of each region of the
+coding sequence (CDS) for the gene’s selected transcript, ordered by
+position in the + strand orientation, 1-based and inclusive.
+e.g. [[7572930, 7573008], …]</p>
+</dd>
+<dt>strand</dt><dd><p><em>type = str</em></p>
+<p>Strand that the transcript is on. Options are ‘+’ or ‘-‘.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.frame_at">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">frame_at</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genomic_position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_map</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.frame_at" title="Link to this definition">¶</a></dt>
+<dd><p>Looks up the codon phase of a genomic position. Returns (codon_index, phase),
+or None if the position falls outside the coding sequence (e.g. in a UTR,
+intron, or a different gene).</p>
+<section id="id34">
+<h3>Parameters<a class="headerlink" href="#id34" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>genomic_position</dt><dd><p><em>type = int</em></p>
+<p>Genomic coordinate to look up.</p>
+</dd>
+<dt>frame_map</dt><dd><p><em>type = dict</em></p>
+<p>Frame map generated by cds_frame_map().</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.frame_of_offset">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">frame_of_offset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">offset</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genomic_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ORF_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.frame_of_offset" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the codon phase (0, 1 or 2) at a given offset of the design
+sequence, or None if it cannot be determined.</p>
+<section id="id35">
+<h3>Parameters<a class="headerlink" href="#id35" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>offset</dt><dd><p><em>type = int</em></p>
+<p>Offset within the design sequence.</p>
+</dd>
+<dt>mode</dt><dd><p><em>type = str</em></p>
+<p>‘cds’ or ‘orf’; see resolve_frame_source().</p>
+</dd>
+<dt>genomic_positions</dt><dd><p><em>type = list or None</em></p>
+<p>Genomic coordinate of every base of the design sequence. Required for
+‘cds’ mode. See prime.mutation.genomic_positions().</p>
+</dd>
+<dt>frame_map</dt><dd><p><em>type = dict or None</em></p>
+<p>Frame map from cds_frame_map(). Required for ‘cds’ mode.</p>
+</dd>
+<dt>ORF_start</dt><dd><p><em>type = int or None</em></p>
+<p>Frame offset within the design sequence. Required for ‘orf’ mode.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.position_is_safe">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">position_is_safe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">genomic_position</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splice_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.position_is_safe" title="Link to this definition">¶</a></dt>
+<dd><p>True if a genomic position may be altered by a silent bystander mutation.
+A position is safe only if it lies within the CDS and is at least
+splice_buffer nt away from every exon boundary.</p>
+<p>Altering a base close to an exon boundary can destroy a splice donor or
+acceptor even when the change is synonymous at the protein level, which would
+cause exon skipping – an effect that is invisible in the sequence but severe
+in the protein.</p>
+<section id="id36">
+<h3>Parameters<a class="headerlink" href="#id36" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>genomic_position</dt><dd><p><em>type = int</em></p>
+<p>Genomic coordinate to test.</p>
+</dd>
+<dt>frame_map</dt><dd><p><em>type = dict</em></p>
+<p>Frame map generated by cds_frame_map().</p>
+</dd>
+<dt>boundaries</dt><dd><p><em>type = set</em></p>
+<p>Exon boundary positions generated by cds_boundaries().</p>
+</dd>
+<dt>splice_buffer</dt><dd><p><em>type = int</em></p>
+<p>Minimum distance to keep from an exon boundary. Default = 3.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.resolve_frame_source">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">resolve_frame_source</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">input_format</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript_strand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ORF_start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.resolve_frame_source" title="Link to this definition">¶</a></dt>
+<dd><p>Works out where the reading frame is going to come from, and refuses the
+combinations that cannot be checked. Returns
+(mode, frame_map, boundaries) where mode is one of:</p>
+<blockquote>
+<div><dl class="simple">
+<dt>‘cds’    – genomic coordinates plus a CDS annotation. The reading frame</dt><dd><p>is looked up per position, and CDS membership and splice-site
+distance are both enforced.</p>
+</dd>
+<dt>‘orf’    – no genomic coordinates. The reading frame comes from</dt><dd><p>ORF_start, and the caller is asserting that the whole input
+sequence is in-frame coding sequence. CDS membership and
+splice sites CANNOT be checked in this mode.</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>Raises ValueError when silent bystanders have been asked for but the inputs
+cannot support them, rather than falling back to a guess: a wrong reading
+frame produces changes that look silent but are not, and that error would
+only surface after the library had been synthesised and sequenced.</p>
+<section id="id37">
+<h3>Parameters<a class="headerlink" href="#id37" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>input_format</dt><dd><p><em>type = str</em></p>
+<p>One of ‘cBioPortal’, ‘WT_ALT’, ‘PrimeDesign’.</p>
+</dd>
+<dt>transcript_strand</dt><dd><p><em>type = str or None</em></p>
+<p>‘+’ or ‘-’; the strand the transcript is on. Required for ‘cBioPortal’.</p>
+</dd>
+<dt>start_end_cds</dt><dd><p><em>type = list or None</em></p>
+<p>CDS blocks for the transcript, 1-based inclusive, ordered in the +
+strand orientation. Required for ‘cBioPortal’.</p>
+</dd>
+<dt>ORF_start</dt><dd><p><em>type = int or None</em></p>
+<p>0, 1 or 2: the offset within the input sequence at which the reading
+frame begins. Required for ‘WT_ALT’ and ‘PrimeDesign’.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.reverse_frame_anchor">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">reverse_frame_anchor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame_of_RTT_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RTT_length</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.reverse_frame_anchor" title="Link to this definition">¶</a></dt>
+<dd><p>Translates a reading-frame anchor from the PAM strand to the reverse
+complement. Returns the codon phase of the first base of
+reverse_complement(RTT_fwd).</p>
+<p>Let the RTT occupy positions p_0 .. p_(L-1) read 5’-&gt;3’ on the PAM strand,
+with phase(p_0) = frame_of_RTT_start. A transcript on the opposite strand is
+read in the other direction, p_(L-1) -&gt; p_0, with the phase incrementing by
+one per base along that direction. The first base of the reverse complement
+is p_(L-1), so</p>
+<blockquote>
+<div><p>phase(p_(L-1)) = (frame_of_RTT_start - (L - 1)) % 3</p>
+</div></blockquote>
+<p>Note this equals frame_of_RTT_start only when (L - 1) % 3 == 0; using the
+untranslated anchor silently produces non-synonymous “silent” mutations for
+the other two thirds of RTT lengths.</p>
+<section id="id38">
+<h3>Parameters<a class="headerlink" href="#id38" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>frame_of_RTT_start</dt><dd><p><em>type = int</em></p>
+<p>Codon phase (0, 1 or 2) of RTT_fwd[0], read in the transcript’s
+orientation.</p>
+</dd>
+<dt>RTT_length</dt><dd><p><em>type = int</em></p>
+<p>Length of the RTT in nt.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.silent_bystanders">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">silent_bystanders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RTT_fwd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left_RTT_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript_strand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM_strand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_of_RTT_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RTT_genomic_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_nt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_muts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_candidates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splice_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.silent_bystanders" title="Link to this definition">¶</a></dt>
+<dd><p>Finds synonymous (“silent”) mutations that can be carried in the RTT of a
+pegRNA alongside the intended edit.</p>
+<p>Returns a list of dicts, each describing one bystander option, with keys
+‘RTT’ (the new RTT in PAM-strand orientation), ‘n_muts’, ‘positions’
+(offsets into RTT_fwd), ‘dist_to_edit’ and ‘aa_check’.</p>
+<p>Options are sorted fewest-mutations-first, then by proximity to the edit.
+Every option is translated and checked to be synonymous against the supplied
+reading frame; all changes lie strictly within window_nt of the edit; the
+intended edit is never altered (for a pure deletion, the bases flanking the
+junction are protected instead); and positions outside the CDS or close to a
+splice site are left alone when frame_map/boundaries are provided.</p>
+<section id="reading-frame-and-strand">
+<h3>Reading frame and strand<a class="headerlink" href="#reading-frame-and-strand" title="Link to this heading">¶</a></h3>
+<p>RTT_fwd is in the PAM-strand orientation used inside
+prime.pegRNA_generator() (i.e. before reverse complementation), where:</p>
+<blockquote>
+<div><p>RTT_fwd[0:3]                  the 3 nt immediately 3’ of the nick
+RTT_fwd[3:3+len(PAM)]         the PAM
+RTT_fwd[left_RTT_len:]        the intended edit</p>
+</div></blockquote>
+<p>When the transcript is on the other strand, codons are read on the reverse
+complement and the frame anchor is translated with reverse_frame_anchor().</p>
+</section>
+<section id="indels">
+<h3>Indels<a class="headerlink" href="#indels" title="Link to this heading">¶</a></h3>
+<p>Downstream of an insertion or deletion the reading frame is shifted by
+(alt_len - ref_len). Where that shift is not a multiple of three the
+downstream reading frame is destroyed and “synonymous” has no meaning, so
+codons downstream of the edit are excluded. Codons upstream of the edit are
+always safe, which is why indels are supported at all.</p>
+</section>
+<section id="id39">
+<h3>Parameters<a class="headerlink" href="#id39" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>RTT_fwd</dt><dd><p><em>type = str</em></p>
+<p>The RTT in PAM-strand orientation (before reverse complement), including
+the intended edit.</p>
+</dd>
+<dt>left_RTT_len</dt><dd><p><em>type = int</em></p>
+<p>Length of the left homology arm, i.e. the offset of the edit within
+RTT_fwd. Equals prime’s Distance_to_nick, and excludes the edit itself.</p>
+</dd>
+<dt>ref_len</dt><dd><p><em>type = int</em></p>
+<p>Length of the reference allele that the edit replaces.</p>
+</dd>
+<dt>alt_len</dt><dd><p><em>type = int</em></p>
+<p>Length of the alternate allele carried in the RTT.</p>
+</dd>
+<dt>transcript_strand</dt><dd><p><em>type = str</em></p>
+<p>‘+’ or ‘-’; strand the transcript is on.</p>
+</dd>
+<dt>PAM_strand</dt><dd><p><em>type = str</em></p>
+<p>‘+’ or ‘-’; strand the pegRNA’s PAM is on.</p>
+</dd>
+<dt>frame_of_RTT_start</dt><dd><p><em>type = int</em></p>
+<p>Codon phase (0, 1 or 2) of RTT_fwd[0], read in the transcript’s
+orientation.</p>
+</dd>
+<dt>RTT_genomic_positions</dt><dd><p><em>type = list or None</em></p>
+<p>Genomic coordinate of each base of RTT_fwd, used for CDS and splice-site
+checks. Default = None (checks skipped).</p>
+</dd>
+<dt>frame_map</dt><dd><p><em>type = dict or None</em></p>
+<p>Frame map from cds_frame_map(). Required for CDS checks.</p>
+</dd>
+<dt>boundaries</dt><dd><p><em>type = set or None</em></p>
+<p>Exon boundaries from cds_boundaries(). Required for splice-site checks.</p>
+</dd>
+<dt>window_nt</dt><dd><p><em>type = int</em></p>
+<p>How far from the edit, in nt, silent mutations may be placed. Default = 5.
+This is enforced strictly: codons are pulled into the search whenever
+they overlap the window, but an option is discarded unless every base it
+changes lies inside the window itself.</p>
+</dd>
+<dt>max_muts</dt><dd><p><em>type = int</em></p>
+<p>Maximum number of silent base changes carried by a single option.
+Default = 2. Each increment multiplies the number of options roughly
+four-fold, and more changes mean more synthesis risk and more chance of
+perturbing features that are not modelled here (splice enhancers, RNA
+secondary structure).</p>
+</dd>
+<dt>max_candidates</dt><dd><p><em>type = int or None</em></p>
+<p>Maximum number of options to return, after sorting fewest-mutations
+first. Default = 20. Keeps the candidate set small enough to be scored
+downstream; set to None for no cap.</p>
+</dd>
+<dt>splice_buffer</dt><dd><p><em>type = int</em></p>
+<p>Minimum distance to keep from an exon boundary. Default = 3.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.synonymous_codons">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">synonymous_codons</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">codon</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.synonymous_codons" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the list of codons synonymous with the input codon, excluding the
+input codon itself. Returns an empty list for Met/Trp (no synonyms) and for
+codons containing non-ATCG characters.</p>
+<section id="id40">
+<h3>Parameters<a class="headerlink" href="#id40" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>codon</dt><dd><p><em>type = str</em></p>
+<p>Three nucleotides.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pegg.bystander.translate_codon">
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">translate_codon</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">codon</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.translate_codon" title="Link to this definition">¶</a></dt>
+<dd><p>Translates a single codon to its amino acid. Returns None if the codon
+contains any non-ATCG character (e.g. an N in the reference genome).</p>
+<section id="id41">
+<h3>Parameters<a class="headerlink" href="#id41" title="Link to this heading">¶</a></h3>
+<dl>
+<dt>codon</dt><dd><p><em>type = str</em></p>
+<p>Three nucleotides.</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+</section>
+<section id="module-pegg.library">
+<span id="pegg-library"></span><h2>pegg.library<a class="headerlink" href="#module-pegg.library" title="Link to this heading">¶</a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.library.aavs1_muts">
-<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">aavs1_muts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_muts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GRCh37'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.aavs1_muts" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">aavs1_muts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_muts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">genome_version</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'GRCh37'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.aavs1_muts" title="Link to this definition">¶</a></dt>
 <dd><p>Function for generating list of “mutations” within AAVS1 locus as negative controls.
 Generates a list of SNPs that contain idential reference and alternate alleles.
 Intron 1-2 of PPP1R12C (AAVS1 locus): GRCh37 transcript = ENST00000263433.3 | GRCh38 transcript = ENST00000263433.8</p>
 <p>Not currently used in the pipeline, but provided anyway.</p>
+<section id="id42">
+<h3>Parameters<a class="headerlink" href="#id42" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>chrom_dict</dt><dd><p><em>type = dict</em></p>
 <p>Dictionary containing chromosomes in dictionary format for parsing by PEGG.</p>
@@ -740,17 +1699,20 @@ Intron 1-2 of PPP1R12C (AAVS1 locus): GRCh37 transcript = ENST00000263433.3 | GR
 <p>Options = ‘GRCh37’, ‘GRCh38’</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.library.library_maker">
-<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">library_maker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mutant_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gene_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_safetarget</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'human'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.library_maker" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">library_maker</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mutant_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gene_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_safetarget</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.05</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'human'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fraction_silent</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strand</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.library_maker" title="Link to this definition">¶</a></dt>
 <dd><p>Compiles the different library design functions to aggregate all of the variants for a particular gene,
 include silent substitution controls at a designated %, and non-targeting controls. This can then be fed
 into the pegg2.run() or base_editing.run_base() functions.</p>
 <p>NOTE: THIS ONLY WORKS FOR GRCh37 and GRCm38!!!
 Alternatively, generate these mutations/guides using these reference builds, and then generate your own guides
 targeting mutations in your desired reference build.</p>
+<section id="id43">
+<h3>Parameters<a class="headerlink" href="#id43" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>mutant_input</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>DataFrame containing all of the input mutations. Doesn’t require filtration for gene of interest.</p>
@@ -776,20 +1738,23 @@ targeting mutations in your desired reference build.</p>
 <p>Chromosome that the gene of interest falls on.</p>
 </dd>
 <dt>strand</dt><dd><p><em>type = str</em></p>
-<p>‘+’ or ‘-‘ – corresponds with which strand the transcript falls on.</p>
+<p>‘+’ or ‘-’ – corresponds with which strand the transcript falls on.</p>
 </dd>
 <dt>start_end_cds</dt><dd><p><em>type = list</em></p>
 <p>Nested list that contains the CDS locations of the gene transcript of interest, in the + strand orientation.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.library.mutation_aggregator">
-<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">mutation_aggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mutant_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gene_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.mutation_aggregator" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">mutation_aggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mutant_input</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gene_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.mutation_aggregator" title="Link to this definition">¶</a></dt>
 <dd><p>Selects the mutations that correspond to the desired gene name.
 Removes duplicates (checking at DNA level; not amino acid level).
 Returns dataframe containing these aggregated mutants occuring in gene_name.</p>
+<section id="id44">
+<h3>Parameters<a class="headerlink" href="#id44" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>mutant_input</dt><dd><p><em>type = pd.DataFrame</em></p>
 <p>A dataframe containing the input mutations from which selections are made to generate pegRNAs.
@@ -799,13 +1764,16 @@ See documentation for precise qualities of this dataframe</p>
 <p>Gene’s Hugo_Symbol (i.e. name).</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.library.neutral_substitutions">
-<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">neutral_substitutions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gene_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.neutral_substitutions" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">neutral_substitutions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">gene_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_end_cds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.neutral_substitutions" title="Link to this definition">¶</a></dt>
 <dd><p>A function for generating all possible synonymous codon substitutions (i.e. silent mutations) of a given gene.
 See documentation for more information about format of start_end_cds &amp; example usage.</p>
+<section id="id45">
+<h3>Parameters<a class="headerlink" href="#id45" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>gene_name</dt><dd><p><em>type = str</em></p>
 <p>Gene’s Hugo_Symbol (i.e. name).</p>
@@ -824,14 +1792,17 @@ See documentation for example and precise specifications of format.</p>
 <p>Dictionary containing the reference genome. See genome_loader()</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.library.nontargeting_guides">
-<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">nontargeting_guides</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_guides</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edit_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'prime'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.nontargeting_guides" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">nontargeting_guides</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_guides</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edit_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'prime'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.nontargeting_guides" title="Link to this definition">¶</a></dt>
 <dd><p>Function for generating a list of non-targetting guides (in the human genome).
 Future versions will expand to mouse as well…Unprocessed files for mouse located within this module.
 Guides taken from: <a class="reference external" href="https://www.nature.com/articles/nmeth.4423">https://www.nature.com/articles/nmeth.4423</a> (<a class="reference external" href="https://doi.org/10.1038/nmeth.4423">https://doi.org/10.1038/nmeth.4423</a>)</p>
+<section id="id46">
+<h3>Parameters<a class="headerlink" href="#id46" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>num_guides</dt><dd><p><em>type = int</em></p>
 <p>Number of guides to non-targetting generate. Max = 1000.</p>
@@ -840,16 +1811,19 @@ Guides taken from: <a class="reference external" href="https://www.nature.com/ar
 <p>Options = ‘base’, ‘prime’</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.library.safe_muts">
-<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">safe_muts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_muts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'human'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.safe_muts" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.library.</span></span><span class="sig-name descname"><span class="pre">safe_muts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">num_muts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">organism</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'human'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.library.safe_muts" title="Link to this definition">¶</a></dt>
 <dd><p>Function for generating a list of safe-targetting pegRNAs/gRNAs.
 NOTE: THIS ONLY WORKS FOR GRCh37 and GRCm38!!!
 Alternatively, generate these mutations/guides using these reference builds, and then generate your own guides
 targeting mutations in your desired reference build.</p>
 <p>This is a random subset of 100,000 “safe regions” taken from Morgens et al., 2017 (<a class="reference external" href="https://doi.org/10.1038/ncomms15178">https://doi.org/10.1038/ncomms15178</a>)</p>
+<section id="id47">
+<h3>Parameters<a class="headerlink" href="#id47" title="Link to this heading">¶</a></h3>
 <dl>
 <dt>num_muts</dt><dd><p><em>type = int</em></p>
 <p>Number of safe-targetting mutations to select/generate.</p>
@@ -861,10 +1835,11 @@ targeting mutations in your desired reference build.</p>
 <p>Choices = “human” or “mouse”. Generates safe targeting guides in human or mouse genome.</p>
 </dd>
 </dl>
+</section>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
         </div>

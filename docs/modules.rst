@@ -1,7 +1,6 @@
+:orphan:
+
 pegg
 ====
 
-.. toctree::
-   :maxdepth: 4
-
-   pegg
+The complete API documentation lives on the :doc:`PEGG` page.
