@@ -327,7 +327,7 @@ which shows an example with PrimeDesign format:</p>
 <p><strong>pegRNA parameters:</strong></p>
 <ul class="simple">
 <li><p><strong>PAM</strong> = PAM sequence for searching. Default = “NGG”. Can include any nucleic acid code (e.g. PAM = “NRCH”).</p></li>
-<li><p><strong>rank_by</strong> = What pegRNA parameter to rank pegRNAs by. Options = “PEGG2_Score” (default; weighted linear regression of different pegRNA parameters; r~.4) or “RF_Score” (random forest predictor of pegRNA efficiency; r~.6).</p></li>
+<li><p><strong>rankby</strong> = What pegRNA parameter to rank pegRNAs by. Options = “PEGG2_Score” (default; weighted linear regression of different pegRNA parameters; r~.4) or “RF_Score” (random forest predictor of pegRNA efficiency; r~.6).</p></li>
 <li><p><strong>pegRNAs_per_mut</strong>: How many pegRNAs to produce per mutation. If you input an integer value <em>n</em>, PEGG will automatically select the <em>n</em> top ranked pegRNAs for that variant. Default = ‘All’ (all possible pegRNAs with parameters). Otherwise, choose an integer value (e.g. 5).</p></li>
 <li><p><strong>RTT_lengths</strong>: List containing RTT lengths to design pegRNAs for. Default = [5,10,15,20,25,30]</p></li>
 <li><p><strong>PBS_length</strong>: List containing PBS lengths to desing pegRNAs for. Default = [8,10,13,15]</p></li>

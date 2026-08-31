@@ -177,7 +177,7 @@ There are a whole host of design parameters for the pegRNAs and sensors that can
 
 - **PAM** = PAM sequence for searching. Default = "NGG". Can include any nucleic acid code (e.g. PAM = "NRCH").
 
-- **rank_by** = What pegRNA parameter to rank pegRNAs by. Options = "PEGG2_Score" (default; weighted linear regression of different pegRNA parameters; r~.4) or "RF_Score" (random forest predictor of pegRNA efficiency; r~.6).
+- **rankby** = What pegRNA parameter to rank pegRNAs by. Options = "PEGG2_Score" (default; weighted linear regression of different pegRNA parameters; r~.4) or "RF_Score" (random forest predictor of pegRNA efficiency; r~.6).
 
 - **pegRNAs_per_mut**: How many pegRNAs to produce per mutation. If you input an integer value *n*, PEGG will automatically select the *n* top ranked pegRNAs for that variant. Default = 'All' (all possible pegRNAs with parameters). Otherwise, choose an integer value (e.g. 5).
 

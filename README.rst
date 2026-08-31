@@ -65,57 +65,70 @@ silent bystander design approach in PRIDICT2.0 (https://github.com/uzh-dqbm-cmi/
 
 Mathis, N., Marquart, K.F., Allam, A., Krauthammer, M. & Schwank, G. Systematic pegRNA design with PRIDICT2.0 and ePRIDICT for efficient prime editing. Nature Protocols (2025). https://doi.org/10.1038/s41596-025-01244-7
 
-Usage
-------
+Basic usage
+------------
 
-Switch the feature on with ``silent_bystander=True``. The output contains **both** the ordinary pegRNAs and the
-bystander-carrying ones, distinguished by the ``has_silent_bystander`` column, so either set can be filtered out afterwards:
+Unchanged from version 2.0. Input a table of mutations in one of three formats -- ``cBioPortal``, ``WT_ALT`` or
+``PrimeDesign`` -- and ``prime.run()`` returns a dataframe of pegRNA-sensor designs:
 
 .. code-block:: python
 
+   from pegg import prime
+
+   pegRNAs = prime.run(input_df, 'PrimeDesign')
+
+The design parameters are all optional and all have defaults:
+
+* **pegRNA:** ``PAM`` (default ``"NGG"``), ``rankby`` (``'PEGG2_Score'`` or ``'RF_Score'``), ``pegRNAs_per_mut``,
+  ``RTT_lengths``, ``PBS_lengths``, ``min_RHA_size``, ``RE_sites``, ``polyT_threshold``, ``proto_size``,
+  ``context_size``.
+* **sensor:** ``sensor`` (True/False), ``sensor_length``, ``sensor_orientation``, ``before_proto_context``.
+* ``chrom_dict`` -- required for ``cBioPortal`` input, from ``prime.genome_loader()``.
+
+See the `full documentation <https://pegg.readthedocs.io/en/latest/>`_ for what each one does.
+
+Silent bystander mutations
+---------------------------
+
+New in version 3.0, and off by default. Switch it on with ``silent_bystander=True``. The output then contains **both**
+the ordinary pegRNAs and the bystander-carrying ones, distinguished by the ``has_silent_bystander`` column, so either
+set can be filtered out afterwards:
+
+.. code-block:: python
+
+   from pegg import bystander
+
+   # resolve each gene's canonical transcript and CDS from the mutation table
+   df, cds = bystander.cds_for_variants(mutations, db)
+   ann = cds['TP53']
+
    peg_df = prime.run(mutations, 'cBioPortal', chrom_dict=chrom_dict,
                       silent_bystander=True,
-                      silent_per_mut=2,              # bystander designs per pegRNA
-                      transcript_strand='-',         # strand the transcript is on
-                      start_end_cds=start_end_cds,   # CDS blocks of the transcript
-                      seed=0)                        # for a reproducible library
+                      silent_per_mut=2,                    # bystander designs per pegRNA
+                      transcript_strand=ann['strand'],
+                      start_end_cds=ann['cds'],
+                      seed=0)                              # for a reproducible library
+
+Further parameters: ``bystander_window_nt`` (how far from the edit silent mutations may be placed, default 5),
+``max_bystander_muts`` (silent changes per pegRNA, default 2), and ``splice_buffer`` (minimum distance from an exon
+boundary, default 3).
 
 Sensors, oligos, and polyT/restriction-site filtration all reflect the bystander mutations. Additional output columns:
 ``n_bystander_muts``, ``bystander_positions``, ``bystander_dist_to_edit``, ``PAM_disrupted_edit``,
 ``PAM_disrupted_by_bystander``, and ``pegRNA_rank_within_group``.
 
 A silent bystander can knock out the PAM as well as the intended edit can, so PAM disruption is reported three ways:
+``PAM_disrupted`` (either cause -- this is what the scoring functions read, and a change in meaning from version 2.0),
+``PAM_disrupted_edit`` (the intended edit alone, i.e. the version 2.0 meaning), and ``PAM_disrupted_by_bystander``.
 
-* ``PAM_disrupted`` -- disrupted by **either** cause. This is what the scoring functions read, since it is what matters
-  biologically. Note this is a change in meaning from PEGG 2.0, where the column referred to the intended edit alone.
-* ``PAM_disrupted_edit`` -- disrupted by the intended edit alone (the PEGG 2.0 meaning of ``PAM_disrupted``).
-* ``PAM_disrupted_by_bystander`` -- disrupted by a silent bystander alone.
+**Reading frame.** Because bystanders must be synonymous, this feature -- and only this feature -- needs to know the
+reading frame. For ``cBioPortal`` input, pass ``transcript_strand`` and ``start_end_cds``; ``cds_for_variants()``
+derives both from the canonical transcript, so they need not be typed by hand. For ``WT_ALT`` and ``PrimeDesign``
+input, pass ``ORF_start`` (0, 1 or 2) and make sure the input sequence is entirely coding. Variants whose frame cannot
+be established simply get no bystanders.
 
-Other parameters: ``bystander_window_nt`` (how far from the edit silent mutations may be placed, default 5),
-``max_bystander_muts`` (silent changes per pegRNA, default 2), and ``splice_buffer`` (minimum distance from an exon
-boundary, default 3).
+All variant types are supported (SNP, ONP, INS, DEL, INDEL).
 
-``start_end_cds`` and ``transcript_strand`` do not have to be typed by hand: ``bystander.cds_for_variants()`` resolves
-each gene's canonical transcript and CDS blocks straight from a cBioPortal-format table. See the
-`full documentation <https://pegg.readthedocs.io/en/latest/>`_ for that and for designing a library across several
-genes at once.
-
-Reading frame requirements
----------------------------
-
-Silent bystanders need reading frame information, which differs by input format:
-
-* ``cBioPortal`` -- needs ``start_end_cds`` and ``transcript_strand``. The reading frame is looked up per genomic position,
-  and bystanders are kept inside the CDS and at least ``splice_buffer`` nt away from splice sites.
-* ``WT_ALT`` / ``PrimeDesign`` -- need ``ORF_start`` (0, 1 or 2), and **the input sequence must be in frame**, i.e. entirely
-  coding sequence. CDS membership and splice sites cannot be checked for these formats.
-
-All variant types are supported (SNP, ONP, INS, DEL, INDEL). Where a frameshifting indel would destroy the downstream
-reading frame, bystanders are placed only upstream of the edit. If the reading frame cannot be established for a variant --
-for example because it falls outside the supplied CDS -- that variant simply gets no bystanders, rather than a guess.
-
-Ordinary pegRNA design is unaffected by any of this: with ``silent_bystander=False`` (the default) no reading frame
-information is needed and the output is unchanged.
 
 Version 3.0 change summary
 ****************************

@@ -1584,7 +1584,7 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
 
         PAM sequence for searching. Default = "NGG". Can include any nucleic acid code (e.g. PAM = "NRCH").
 
-    rank_by
+    rankby
         *type = str*
 
         What pegRNA parameter to rank pegRNAs by. Options = "PEGG2_Score" (weighted linear regression of different pegRNA parameters)
