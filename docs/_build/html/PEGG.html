@@ -263,6 +263,10 @@ and returns a pandas dataframe containing the variants in a format that can be u
 <span class="sig-prename descclassname"><span class="pre">pegg.prime.</span></span><span class="sig-name descname"><span class="pre">df_formatter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chrom_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">context_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">120</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.prime.df_formatter" title="Link to this definition">¶</a></dt>
 <dd><p>Takes in variants (in cBioPortal format!) and outputs dataframe with REF and ALT oligos with designated context_size
 that can be used by PEGG for creating pegRNAs.</p>
+<p>Variant_Type must be one of SNP, DNP, TNP, ONP, INDEL, INS or DEL; any other
+value raises a ValueError naming the row. Rows whose rebuilt sequence does
+not match the reference genome at their own coordinates are reported and
+dropped.</p>
 <section id="id3">
 <h3>Parameters<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
 <dl>
@@ -1592,7 +1596,7 @@ orientation.</p>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="pegg.bystander.silent_bystanders">
-<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">silent_bystanders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RTT_fwd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left_RTT_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript_strand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM_strand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_of_RTT_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RTT_genomic_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_nt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_muts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_candidates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splice_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.silent_bystanders" title="Link to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">pegg.bystander.</span></span><span class="sig-name descname"><span class="pre">silent_bystanders</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">RTT_fwd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left_RTT_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ref_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alt_len</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript_strand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PAM_strand</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_of_RTT_start</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">RTT_genomic_positions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frame_map</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundaries</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window_nt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_muts</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_candidates</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">20</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">splice_buffer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exon_blocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pegg.bystander.silent_bystanders" title="Link to this definition">¶</a></dt>
 <dd><p>Finds synonymous (“silent”) mutations that can be carried in the RTT of a
 pegRNA alongside the intended edit.</p>
 <p>Returns a list of dicts, each describing one bystander option, with keys
@@ -1603,7 +1607,9 @@ Every option is translated and checked to be synonymous against the supplied
 reading frame; all changes lie strictly within window_nt of the edit; the
 intended edit is never altered (for a pure deletion, the bases flanking the
 junction are protected instead); and positions outside the CDS or close to a
-splice site are left alone when frame_map/boundaries are provided.</p>
+splice site are left alone when frame_map/boundaries are provided; and when
+exon_blocks is given, every change is confined to the same exon as the edit,
+since an RTT cannot span an intron.</p>
 <section id="reading-frame-and-strand">
 <h3>Reading frame and strand<a class="headerlink" href="#reading-frame-and-strand" title="Link to this heading">¶</a></h3>
 <p>RTT_fwd is in the PAM-strand orientation used inside
@@ -1654,6 +1660,13 @@ orientation.</p>
 <dt>RTT_genomic_positions</dt><dd><p><em>type = list or None</em></p>
 <p>Genomic coordinate of each base of RTT_fwd, used for CDS and splice-site
 checks. Default = None (checks skipped).</p>
+</dd>
+<dt>exon_blocks</dt><dd><p><em>type = list or None</em></p>
+<p>CDS blocks of the transcript, 1-based inclusive, same format as
+start_end_cds. When supplied together with RTT_genomic_positions, silent
+bystanders are confined to the exon that contains the edit: an RTT is one
+contiguous stretch of genomic DNA, so a bystander in a neighbouring exon
+does not describe a real molecule. Default = None (no confinement).</p>
 </dd>
 <dt>frame_map</dt><dd><p><em>type = dict or None</em></p>
 <p>Frame map from cds_frame_map(). Required for CDS checks.</p>

@@ -64,7 +64,7 @@ If you want to build you own mutation dataset, it must have the following column
 
 3. End_Position: end position of mutation in the reference genome
 
-4. Variant_Type: what type of mutation is it. Options: "SNP", "ONP", "INS", "DEL", "INDEL"
+4. Variant_Type: what type of mutation is it. Options: "SNP", "DNP", "TNP", "ONP", "INS", "DEL", "INDEL". A value outside this set raises an error naming the row, rather than being designed against the wrong locus.
 
 5. Reference_Allele: what is the reference allele. For insertions, this should be set to "-".
 

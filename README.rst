@@ -132,7 +132,7 @@ nothing has to be typed by hand. For ``WT_ALT`` and ``PrimeDesign`` input there 
 ``ORF_start`` (0, 1 or 2) and make sure the input sequence is entirely coding. Variants whose frame cannot be
 established simply get no bystanders.
 
-All variant types are supported (SNP, ONP, INS, DEL, INDEL).
+All variant types are supported (SNP, DNP, TNP, ONP, INS, DEL, INDEL).
 
 
 Version 3.0 change summary
@@ -143,7 +143,8 @@ version 2.0.
 
 **New capability.** pegRNAs can carry synonymous ("silent") bystander mutations alongside the intended edit. Both
 designs are returned in the same table, distinguished by the ``has_silent_bystander`` column. Sensors, oligos and
-filtration all reflect the bystander mutations, and all variant types are supported (SNP, ONP, INS, DEL, INDEL).
+filtration all reflect the bystander mutations, and all variant types are supported (SNP, DNP, TNP, ONP, INS,
+DEL, INDEL).
 
 **New module** ``pegg.bystander`` -- silent bystander generation plus reading frame utilities, most usefully
 ``cds_for_variants()``.
@@ -160,8 +161,17 @@ its previous meaning is preserved exactly in ``PAM_disrupted_edit``. Likewise ``
 designs together with ordinary ones, while ``pegRNA_rank_within_group`` reproduces the version 2.0 ranking. With the
 feature off both pairs are identical.
 
-**Bug fix.** ``prime.sensor_viz()`` could fail with a matplotlib ``ValueError`` when a pegRNA's 3' extension reached
-past the edge of the sensor window. This affected version 2.0 as well; plots that rendered before are unchanged.
+**Bug fixes.** Two, both of which affected version 2.0 as well:
+
+``prime.sensor_viz()`` could fail with a matplotlib ``ValueError`` when a pegRNA's 3' extension reached past the edge
+of the sensor window. Plots that rendered before are unchanged.
+
+A ``TNP`` variant was not recognised by ``df_formatter()``, which handled ``SNP``, ``DNP``, ``ONP``, ``INDEL``,
+``INS`` and ``DEL`` but not ``TNP``. Because the flanking context is assigned inside a loop, an unrecognised type
+silently kept the **previous row's** sequence and so described a different locus; the variant was then dropped by the
+consistency check with a confusing "Error in mutant #N" message, or -- worse, had the lengths happened to agree --
+designed against the wrong site. ``TNP`` is now handled, and any unrecognised ``Variant_Type`` raises a named error
+rather than falling through.
 
 
 PEGG is an open source python package. If you use PEGG, please cite it using the following citation:

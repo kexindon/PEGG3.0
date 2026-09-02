@@ -240,7 +240,7 @@ This format is compatible with all of the datasets in the <a class="reference ex
 <li><p>Chromosome: which chromosome the mutation falls in. Use integers or ‘X’ and ‘Y’.</p></li>
 <li><p>Start_Position: start position of mutation in the reference genome (mutations should only be reported on the + strand)</p></li>
 <li><p>End_Position: end position of mutation in the reference genome</p></li>
-<li><p>Variant_Type: what type of mutation is it. Options: “SNP”, “ONP”, “INS”, “DEL”, “INDEL”</p></li>
+<li><p>Variant_Type: what type of mutation is it. Options: “SNP”, “DNP”, “TNP”, “ONP”, “INS”, “DEL”, “INDEL”. A value outside this set raises an error naming the row, rather than being designed against the wrong locus.</p></li>
 <li><p>Reference_Allele: what is the reference allele. For insertions, this should be set to “-“.</p></li>
 <li><p>Tumor_Seq_Allele2: what is the mutant allele (i.e. what is the mutation sequence). For deletions, this should be set to “-“.</p></li>
 </ol>

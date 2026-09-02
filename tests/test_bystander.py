@@ -402,6 +402,52 @@ def test_exon_confinement_at_edge():
     print('  exon confinement at an edge         OK (%d options)' % len(options))
 
 
+def test_tnp_context_is_its_own():
+    """A TNP must get its context from its OWN coordinates.
+
+    df_formatter() assigns left_context/right_context inside a loop, so a variant
+    type matching no branch keeps the previous row's values -- the design is then
+    built against a different locus entirely, with nothing to say so. TNP was
+    missing from the substitution branch, which is exactly how that happened.
+    """
+    from pegg import prime
+    import pandas as pd
+
+    #two rows far apart on a synthetic chromosome; if the TNP inherits the SNP's
+    #context, its rebuilt sequence will not match its own genomic window
+    chrom = ('A' * 500) + 'GGG' + ('C' * 500) + 'ACT' + ('T' * 500)
+    chrom_dict = {1: chrom}
+
+    df = pd.DataFrame([
+        dict(Hugo_Symbol='X', Chromosome=1, Start_Position=501, End_Position=503,
+             Variant_Type='TNP', Reference_Allele='GGG', Tumor_Seq_Allele2='AAA'),
+        dict(Hugo_Symbol='X', Chromosome=1, Start_Position=1004, End_Position=1006,
+             Variant_Type='TNP', Reference_Allele='ACT', Tumor_Seq_Allele2='TGA'),
+    ])
+
+    out = prime.df_formatter(df, chrom_dict, context_size=50)
+    assert len(out) == 2, 'a TNP was dropped: %d of 2 survived' % len(out)
+
+    for _, row in out.iterrows():
+        #the rebuilt WT must equal the genome at this row's own coordinates
+        start, end = int(row['seq_start']), int(row['seq_end'])
+        assert row['wt_w_context'] == chrom[start - 1:end], \
+            'TNP context does not come from its own locus'
+        assert row['REF'] in row['wt_w_context']
+
+    #and an unknown type must raise rather than silently reuse the last context
+    bad = df.copy()
+    bad.loc[1, 'Variant_Type'] = 'NONSENSE_TYPE'
+    try:
+        prime.df_formatter(bad, chrom_dict, context_size=50)
+    except ValueError as err:
+        assert 'Unrecognised Variant_Type' in str(err)
+    else:
+        raise AssertionError('an unhandled Variant_Type was silently accepted')
+
+    print('  TNP context / unknown-type guard    OK')
+
+
 if __name__ == '__main__':
     print('six input classes:')
     for label, ts, ps, ref_len, alt_len in CASES:
@@ -420,6 +466,7 @@ if __name__ == '__main__':
     test_attach_cds()
     test_exon_confinement()
     test_exon_confinement_at_edge()
+    test_tnp_context_is_its_own()
 
     print()
     print('all tests passed')

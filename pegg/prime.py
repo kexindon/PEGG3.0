@@ -202,6 +202,11 @@ def df_formatter(df, chrom_dict, context_size = 120):
     Takes in variants (in cBioPortal format!) and outputs dataframe with REF and ALT oligos with designated context_size
     that can be used by PEGG for creating pegRNAs.
 
+    Variant_Type must be one of SNP, DNP, TNP, ONP, INDEL, INS or DEL; any other
+    value raises a ValueError naming the row. Rows whose rebuilt sequence does
+    not match the reference genome at their own coordinates are reported and
+    dropped.
+
     Parameters
     -----------
     df
@@ -247,7 +252,12 @@ def df_formatter(df, chrom_dict, context_size = 120):
        
         chr_seq = chrom_dict[chrom].upper()
 
-        if vt in ['SNP', 'ONP', 'DNP', 'INDEL']:
+        #TNP belongs here with the other equal-length substitutions. A variant
+        #type that matches no branch leaves left_context/right_context holding
+        #the PREVIOUS row's values, so the rebuilt sequence silently describes
+        #the wrong locus -- caught below only because it fails the consistency
+        #check against the genome.
+        if vt in ['SNP', 'ONP', 'DNP', 'TNP', 'INDEL']:
             ref = ref
             alt = alt
             #assert ref == chr_seq[s-1:e], print(ref, chr_seq[s-1:e])
@@ -266,6 +276,14 @@ def df_formatter(df, chrom_dict, context_size = 120):
             alt = ''
             left_context = chr_seq[s-1-context_size:s-1]
             right_context = chr_seq[e:e+context_size]
+
+        else:
+            #Refuse rather than fall through: left_context and right_context are
+            #loop variables, so an unhandled type would silently carry over the
+            #previous row's sequence and design against the wrong locus.
+            raise ValueError(
+                "Unrecognised Variant_Type %r in row %s. Expected one of "
+                "SNP, DNP, TNP, ONP, INDEL, INS, DEL." % (vt, i))
 
         wt_seq = left_context + ref + right_context
         alt_seq = left_context + alt + right_context
