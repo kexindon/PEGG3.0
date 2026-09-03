@@ -8,3 +8,5 @@ dist/
 .venv/
 venv/
 .vscode/
+# Sphinx build output -- Read the Docs builds this itself
+docs/_build/

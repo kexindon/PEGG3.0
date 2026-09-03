@@ -9,7 +9,7 @@ PEGG is available through the python package index. To install, use pip:
 
    pip install pegg
 
-To modify and/or download specific python files, download the package from the `Github Repository <https://github.com/samgould2/PEGG2.0>`_ .
+To modify and/or download specific python files, download the package from the `Github Repository <https://github.com/kexindon/PEGG3.0>`_ .
 
 PEGG has been tested with python versions 3.9 and 3.10. Python versions higher than 3.10 are not compatible with the scikit-learn package version needed to compute protospacer on-target scores.
 To get it to install, you may need to use a `virtual environment <https://saturncloud.io/blog/how-to-install-python-39-with-conda-a-guide-for-data-scientists/>`_ :
