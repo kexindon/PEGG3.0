@@ -1,1 +1,7 @@
 recursive-include pegg *
+
+# never ship build artefacts or macOS metadata: recursive-include above sweeps
+# in everything under pegg/, including __pycache__ and .DS_Store
+global-exclude *.py[cod]
+global-exclude .DS_Store
+prune pegg/__pycache__

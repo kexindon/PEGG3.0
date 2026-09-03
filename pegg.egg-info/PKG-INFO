@@ -1,8 +1,8 @@
 Metadata-Version: 2.4
 Name: pegg
-Version: 2.1.0
-Summary: Prime Editing Guide Generator
-Home-page: https://github.com/samgould2/PEGG2.0
+Version: 3.0.0
+Summary: Prime Editing Guide Generator, with silent bystander mutations
+Home-page: https://github.com/kexindon/PEGG3.0
 Author: Samuel Gould
 Author-email: samgould@mit.edu
 Classifier: Programming Language :: Python :: 3
@@ -21,6 +21,7 @@ Requires-Dist: setuptools>=61.2.0
 Requires-Dist: Sphinx>=4.4.0
 Requires-Dist: scikit-learn==1.1.1
 Requires-Dist: regex>=2023.8.8
+Requires-Dist: gffutils>=0.11
 Dynamic: author
 Dynamic: author-email
 Dynamic: classifier
