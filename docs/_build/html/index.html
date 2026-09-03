@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <head>
   <meta charset="utf-8">
-  
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#2D2D2D" />
   
@@ -16,10 +17,8 @@
 
   <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
       <script type="text/javascript" src="_static/documentation_options.js"></script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/_sphinx_javascript_frameworks_compat.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/sphinx_highlight.js"></script>
   
 
   <script src="https://email.tl.fortawesome.com/c/eJxNjUEOgyAQAF8jR7Kw6wIHDh7sP1Cw2mgxgmn6-3JsMqc5zEQfE8dkxOY1KKMUOI3ACFKRJpSW2AAp7ontYIaxI6i7XPJVwyeVfCQ550Os3jLrGSNOLgbdAy6s0PBk2TFNjEbsfq31LB0OnX407pJa5v2faRadwSW63mn5KuLyR9j2tgx3zecanl-55R_-jjPs"></script> 
@@ -30,12 +29,14 @@
     <header>
       <div id="logo-container">
           
-          <a href="#"><img src="_static/PEGG_notext.png"></a>
+          <h1>
+            <a href="#">PEGG</a>
+          </h1>
           
       </div>
       <div id="project-container">
         
-        <h1>PEGG Documentation</h1>
+        <h1>Documentation</h1>
         
       </div>
 
@@ -83,6 +84,12 @@
 <li class="toctree-l3"><a class="reference internal" href="quickstart.html#design-options">Design Options</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#silent-bystander-mutations">Silent Bystander Mutations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#getting-the-reading-frame">Getting the reading frame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#designing-a-library">Designing a library</a></li>
+<li class="toctree-l3"><a class="reference internal" href="quickstart.html#output-columns">Output columns</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#base-editing">Base Editing</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="quickstart.html#id2">Design Options</a></li>
 </ul>
@@ -95,9 +102,76 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="jupyter_tutorial.html">🪐 Jupyter Notebook Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="PEGG.html">📚 Complete Function Documentation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.prime">pegg.prime</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.base">pegg.base</a></li>
-<li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.library">pegg.library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.prime">pegg.prime</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.PAM_finder"><code class="docutils literal notranslate"><span class="pre">PAM_finder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.RF_score"><code class="docutils literal notranslate"><span class="pre">RF_score()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.clinvar_VCF_translator"><code class="docutils literal notranslate"><span class="pre">clinvar_VCF_translator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.df_formatter"><code class="docutils literal notranslate"><span class="pre">df_formatter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.eligible_PAM_finder"><code class="docutils literal notranslate"><span class="pre">eligible_PAM_finder()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.genome_loader"><code class="docutils literal notranslate"><span class="pre">genome_loader()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.goldengate_oligos"><code class="docutils literal notranslate"><span class="pre">goldengate_oligos()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.input_formatter"><code class="docutils literal notranslate"><span class="pre">input_formatter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.make_aligner"><code class="docutils literal notranslate"><span class="pre">make_aligner()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.mut_formatter"><code class="docutils literal notranslate"><span class="pre">mut_formatter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.mutation"><code class="docutils literal notranslate"><span class="pre">mutation</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.ontarget_score"><code class="docutils literal notranslate"><span class="pre">ontarget_score()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.other_filtration"><code class="docutils literal notranslate"><span class="pre">other_filtration()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.pegRNA_generator"><code class="docutils literal notranslate"><span class="pre">pegRNA_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.peggscore2"><code class="docutils literal notranslate"><span class="pre">peggscore2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.prime_oligo_generator"><code class="docutils literal notranslate"><span class="pre">prime_oligo_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.primedesign_formatter"><code class="docutils literal notranslate"><span class="pre">primedesign_formatter()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.run"><code class="docutils literal notranslate"><span class="pre">run()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.sensor_generator"><code class="docutils literal notranslate"><span class="pre">sensor_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.sensor_viz"><code class="docutils literal notranslate"><span class="pre">sensor_viz()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.prime.split_word"><code class="docutils literal notranslate"><span class="pre">split_word()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.base">pegg.base</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.base.base_oligo_generator"><code class="docutils literal notranslate"><span class="pre">base_oligo_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.base.eligible_PAM_finder_base"><code class="docutils literal notranslate"><span class="pre">eligible_PAM_finder_base()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.base.gRNA_generator"><code class="docutils literal notranslate"><span class="pre">gRNA_generator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.base.run_base"><code class="docutils literal notranslate"><span class="pre">run_base()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.base.sensor_generator_base"><code class="docutils literal notranslate"><span class="pre">sensor_generator_base()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.base.sensor_viz_base"><code class="docutils literal notranslate"><span class="pre">sensor_viz_base()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.base.split_word"><code class="docutils literal notranslate"><span class="pre">split_word()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.bystander">pegg.bystander</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#reading-frame">Reading frame</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#input-formats">Input formats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.add_cds_to_variants"><code class="docutils literal notranslate"><span class="pre">add_cds_to_variants()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.attach_cds"><code class="docutils literal notranslate"><span class="pre">attach_cds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.canonical_transcript"><code class="docutils literal notranslate"><span class="pre">canonical_transcript()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.canonical_transcripts"><code class="docutils literal notranslate"><span class="pre">canonical_transcripts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.cds_annotation_report"><code class="docutils literal notranslate"><span class="pre">cds_annotation_report()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.cds_boundaries"><code class="docutils literal notranslate"><span class="pre">cds_boundaries()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.cds_codons"><code class="docutils literal notranslate"><span class="pre">cds_codons()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.cds_for_variants"><code class="docutils literal notranslate"><span class="pre">cds_for_variants()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.cds_frame_map"><code class="docutils literal notranslate"><span class="pre">cds_frame_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.cds_from_annotation_db"><code class="docutils literal notranslate"><span class="pre">cds_from_annotation_db()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.cds_from_gtf"><code class="docutils literal notranslate"><span class="pre">cds_from_gtf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.cds_from_tx_ids"><code class="docutils literal notranslate"><span class="pre">cds_from_tx_ids()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.cds_positions"><code class="docutils literal notranslate"><span class="pre">cds_positions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.frame_at"><code class="docutils literal notranslate"><span class="pre">frame_at()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.frame_of_offset"><code class="docutils literal notranslate"><span class="pre">frame_of_offset()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.frame_source_from_row"><code class="docutils literal notranslate"><span class="pre">frame_source_from_row()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.position_is_safe"><code class="docutils literal notranslate"><span class="pre">position_is_safe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.resolve_frame_source"><code class="docutils literal notranslate"><span class="pre">resolve_frame_source()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.reverse_frame_anchor"><code class="docutils literal notranslate"><span class="pre">reverse_frame_anchor()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.silent_bystanders"><code class="docutils literal notranslate"><span class="pre">silent_bystanders()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.synonymous_codons"><code class="docutils literal notranslate"><span class="pre">synonymous_codons()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.bystander.translate_codon"><code class="docutils literal notranslate"><span class="pre">translate_codon()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.library">pegg.library</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.library.aavs1_muts"><code class="docutils literal notranslate"><span class="pre">aavs1_muts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.library.library_maker"><code class="docutils literal notranslate"><span class="pre">library_maker()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.library.mutation_aggregator"><code class="docutils literal notranslate"><span class="pre">mutation_aggregator()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.library.neutral_substitutions"><code class="docutils literal notranslate"><span class="pre">neutral_substitutions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.library.nontargeting_guides"><code class="docutils literal notranslate"><span class="pre">nontargeting_guides()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="PEGG.html#pegg.library.safe_muts"><code class="docutils literal notranslate"><span class="pre">safe_muts()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="about.html">❓ About PEGG</a></li>
@@ -119,10 +193,10 @@
       <div id="main-content-container">
         <div id="main-content" role="main">
           
-  <div class="section" id="pegg-pegg-prime-editing-guide-generator">
-<h1><a class="reference internal" href="_images/PEGG_3.png"><img alt="PEGG" src="_images/PEGG_3.png" style="width: 200px; height: 200px;" /></a> PEGG: Prime Editing Guide Generator<a class="headerlink" href="#pegg-pegg-prime-editing-guide-generator" title="Permalink to this heading">¶</a></h1>
-<div class="section" id="id1">
-<h2><a class="reference external" href="https://www.nature.com/articles/s41587-024-02172-9">Click here to read the Nature Biotechnology article</a><a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
+  <section id="pegg-pegg-prime-editing-guide-generator">
+<h1><a class="reference internal" href="_images/PEGG_3.png"><img alt="PEGG" src="_images/PEGG_3.png" style="width: 200px; height: 200px;" /></a> PEGG: Prime Editing Guide Generator<a class="headerlink" href="#pegg-pegg-prime-editing-guide-generator" title="Link to this heading">¶</a></h1>
+<section id="id1">
+<h2><a class="reference external" href="https://www.nature.com/articles/s41587-024-02172-9">Click here to read the Nature Biotechnology article</a><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h2>
 <p>PEGG is a python package that designs prime editing guide RNAs (pegRNAs) and base editing guide RNAs (gRNAs) for use in precision genome editing.
 Unlike the existing, web-based programs for pegRNA design, PEGG is suitable for designing thousands of pegRNAs at once, giving users the ability to design entire libraries of pegRNAs
 and gRNAs. Uniquely, PEGG can design paired pegRNA or gRNA-sensor cassettes that include a synthetic version of the target locus, allowing for
@@ -134,19 +208,28 @@ the calibration of guide editing activity in pooled screens (see above bioRxiv p
 <li><p>Automated oligo generation (with the option to include a synthetic “sensor” region).</p></li>
 <li><p>Automated pegRNA/gRNA library design with included safe-targeting mutations, non-targeting guides, and silent substitution controls.</p></li>
 <li><p>Visualization Tools for pegRNA and gRNA design.</p></li>
+<li><p>Optional silent bystander mutations: synonymous edits placed alongside the intended edit to evade mismatch repair and, where they fall in the PAM, reduce re-nicking. Both the ordinary and bystander-carrying designs are returned, so they can be compared directly.</p></li>
 </ol>
-<p>PEGG has recently been updated to version 2.0, with new features including (1) increased input mutation format flexibility,
+<p>PEGG was updated to version 2.0 with new features including (1) increased input mutation format flexibility,
 (2) Dynamically computed Azimuth on-target scores, (3) a new base editing module, (4) improved library design functionality, as well as some minor bug fixes with INS/DEL design.</p>
-</div>
-<div class="section" id="installation">
-<h2>Installation<a class="headerlink" href="#installation" title="Permalink to this heading">¶</a></h2>
+<p>Version 3.0 adds silent bystander mutations. pegRNAs can carry synonymous edits alongside the intended one, and both
+designs are returned in the same table – the ordinary pegRNA and up to <code class="docutils literal notranslate"><span class="pre">silent_per_mut</span></code> bystander-carrying variants
+of it – distinguished by the <code class="docutils literal notranslate"><span class="pre">has_silent_bystander</span></code> column, so either set can be filtered out afterwards. Sensors,
+oligos, and polyT / restriction-site filtration all reflect the bystander mutations, and all variant types are
+supported (SNP, ONP, INS, DEL, INDEL). The feature is off by default: with <code class="docutils literal notranslate"><span class="pre">silent_bystander=False</span></code> the output is
+identical to version 2.0.</p>
+<p>The synonymous mutation logic is informed by the silent bystander design approach in
+<a class="reference external" href="https://github.com/uzh-dqbm-cmi/PRIDICT2">PRIDICT2.0</a> (Mathis et al., Nature Protocols 2025).</p>
+</section>
+<section id="installation">
+<h2>Installation<a class="headerlink" href="#installation" title="Link to this heading">¶</a></h2>
 <p>PEGG is available through the python package index. To install, use pip:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pegg</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="note">
-<h2>Note<a class="headerlink" href="#note" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="note">
+<h2>Note<a class="headerlink" href="#note" title="Link to this heading">¶</a></h2>
 <p>PEGG has been tested with python versions 3.9 and 3.10. Python versions higher than 3.10 are not compatible with the scikit-learn package version needed to compute protospacer on-target scores.
 To get it to install, you may need to use a <a class="reference external" href="https://saturncloud.io/blog/how-to-install-python-39-with-conda-a-guide-for-data-scientists/">virtual environment</a> :</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">myenv</span> <span class="n">python</span><span class="o">=</span><span class="mf">3.9</span>
@@ -161,6 +244,7 @@ A version without this package and its functionality is available for local pip 
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#installation">Installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#input-formatting">Input Formatting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#generating-pegrnas">Generating pegRNAs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quickstart.html#silent-bystander-mutations">Silent Bystander Mutations</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#base-editing">Base Editing</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#sensor-design">Sensor Design</a></li>
 <li class="toctree-l2"><a class="reference internal" href="quickstart.html#oligo-generation">Oligo Generation</a></li>
@@ -172,6 +256,7 @@ A version without this package and its functionality is available for local pip 
 <li class="toctree-l1"><a class="reference internal" href="PEGG.html">📚 Complete Function Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.prime">pegg.prime</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.base">pegg.base</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.bystander">pegg.bystander</a></li>
 <li class="toctree-l2"><a class="reference internal" href="PEGG.html#module-pegg.library">pegg.library</a></li>
 </ul>
 </li>
@@ -186,14 +271,14 @@ A version without this package and its functionality is available for local pip 
 </div>
 <p>PEGG is an open source python package. If you use PEGG, please cite it using the following citation:</p>
 <p>Gould, S.I., Wuest, A.N., Dong, K. et al. High-throughput evaluation of genetic variants with prime editing sensor libraries. Nat Biotechnol (2024). <a class="reference external" href="https://doi.org/10.1038/s41587-024-02172-9">https://doi.org/10.1038/s41587-024-02172-9</a></p>
-</div>
-<div class="section" id="function-index">
-<h2>Function Index<a class="headerlink" href="#function-index" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="function-index">
+<h2>Function Index<a class="headerlink" href="#function-index" title="Link to this heading">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
         </div>

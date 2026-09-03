@@ -64,7 +64,7 @@ If you want to build you own mutation dataset, it must have the following column
 
 3. End_Position: end position of mutation in the reference genome
 
-4. Variant_Type: what type of mutation is it. Options: "SNP", "ONP", "INS", "DEL", "INDEL"
+4. Variant_Type: what type of mutation is it. Options: "SNP", "DNP", "TNP", "ONP", "INS", "DEL", "INDEL". A value outside this set raises an error naming the row, rather than being designed against the wrong locus.
 
 5. Reference_Allele: what is the reference allele. For insertions, this should be set to "-".
 
@@ -125,6 +125,25 @@ See the below codeblock for the precise syntax:
    df = prime.clinvar_VCF_translator(filepath, variation_ids)
 
 
+Input formats and silent bystanders
+-------------------------------------
+
+Silent bystander design (see below) needs to know the reading frame, and the three input formats differ in what they
+can provide:
+
+- **cBioPortal**: genomic coordinates are available, so the reading frame is looked up per position from a CDS
+  annotation. CDS membership and distance to splice sites are both checked. Full support.
+
+- **WT_ALT** and **PrimeDesign**: no genomic coordinates, so the reading frame must be declared with ``ORF_start``
+  (0, 1 or 2) and **the input sequence must be in frame** -- entirely coding sequence, starting at that offset. CDS
+  membership and splice sites cannot be checked for these formats, so a sequence containing intronic or untranslated
+  bases would produce bystanders that only appear to be silent.
+
+Ordinary pegRNA design is unaffected by any of this: with ``silent_bystander=False`` (the default) no reading frame
+information is needed, and a sequence that is not in frame -- or not coding at all -- is designed against exactly as
+before.
+
+
 Generating pegRNAs
 ********************
 
@@ -158,7 +177,7 @@ There are a whole host of design parameters for the pegRNAs and sensors that can
 
 - **PAM** = PAM sequence for searching. Default = "NGG". Can include any nucleic acid code (e.g. PAM = "NRCH").
 
-- **rank_by** = What pegRNA parameter to rank pegRNAs by. Options = "PEGG2_Score" (default; weighted linear regression of different pegRNA parameters; r~.4) or "RF_Score" (random forest predictor of pegRNA efficiency; r~.6).
+- **rankby** = What pegRNA parameter to rank pegRNAs by. Options = "PEGG2_Score" (default; weighted linear regression of different pegRNA parameters; r~.4) or "RF_Score" (random forest predictor of pegRNA efficiency; r~.6).
 
 - **pegRNAs_per_mut**: How many pegRNAs to produce per mutation. If you input an integer value *n*, PEGG will automatically select the *n* top ranked pegRNAs for that variant. Default = 'All' (all possible pegRNAs with parameters). Otherwise, choose an integer value (e.g. 5).
 
@@ -185,6 +204,108 @@ There are a whole host of design parameters for the pegRNAs and sensors that can
 - **sensor_length**: Total length of the sensor in nt. Default = 60. 
 
 - **sensor_orientation**: Orientation of the sensor relative to the protospacer. Options for sensor_orientation = 'reverse-complement' or'forward'. Default = 'reverse-complement' (to minimize recombination).
+
+**silent bystander parameters** (see section below)
+
+- **silent_bystander**: True/False whether to additionally design pegRNAs carrying synonymous ("silent") bystander mutations alongside the intended edit. Default = False, in which case none of the parameters below have any effect and the output is unchanged.
+
+- **silent_per_mut**: How many silent bystander designs to keep per pegRNA, i.e. per PAM site x RTT length x PBS length. Chosen at random from the viable options. Default = 2, so a pegRNA with bystanders available contributes three rows: itself, plus two bystander variants.
+
+- For 'cBioPortal' input the reading frame is **not** a parameter. It is read per variant from the ``transcript_strand`` and ``start_end_cds`` columns that ``bystander.cds_for_variants()`` adds to the input table, so run that first (see below) and a single call then covers any number of genes.
+
+- **ORF_start**: 0, 1 or 2: the offset within the input sequence at which the reading frame begins. Required for 'WT_ALT' and 'PrimeDesign' input, in which case the input sequence must be entirely coding sequence.
+
+- **bystander_window_nt**: How far from the edit, in nt, silent mutations may be placed. Default = 5.
+
+- **max_bystander_muts**: Maximum number of silent changes carried by one pegRNA. Default = 2.
+
+- **splice_buffer**: Minimum distance to keep from an exon boundary, to avoid disrupting a splice donor or acceptor. Only enforced for 'cBioPortal' input, where exon boundaries are known. Default = 3.
+
+- **seed**: Seed for the random selection of bystander designs. Pass an integer to make a library reproducible. Default = None (different each run).
+
+Silent Bystander Mutations
+****************************
+
+Silent changes near the edit help evade mismatch repair (MMR) and, when they fall in the PAM or seed, also reduce
+re-nicking of the edited allele -- both of which can increase prime editing efficiency. The logic is informed by the
+silent bystander design approach in `PRIDICT2.0 <https://github.com/uzh-dqbm-cmi/PRIDICT2>`_.
+
+The output contains **both** the ordinary pegRNAs and the bystander-carrying ones, distinguished by the
+``has_silent_bystander`` column, so either set can be filtered out afterwards. Sensors, oligos, and polyT /
+restriction-site filtration all reflect the bystander mutations.
+
+Getting the reading frame
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For cBioPortal input this is a **required first step**: a bystander is only silent with respect to a reading frame, so
+the frame has to be resolved from the gene's transcript and attached to the mutation table before ``run()`` is called.
+Each gene is designed against its **canonical transcript**, from a curated table bundled with PEGG:
+
+.. code-block:: python
+
+   import gffutils
+   from pegg import prime, bystander
+
+   db = gffutils.FeatureDB('gencode.v19.db')
+
+   df, cds_lookup = bystander.cds_for_variants(mutations, db)
+   # 4/6 variants have a usable reading frame (2 of 3 genes resolved)
+   #   no canonical transcript known for: UNKNOWN
+   #   CDS not a multiple of 3: GENE2
+   #   those variants still get ordinary pegRNAs, just no bystanders
+
+A gene has many transcripts and the reading frame belongs to exactly one of them, so this is not left to a heuristic:
+variant annotation such as ``HGVSp_Short`` is generally computed against the canonical transcript, and designing
+against a different one can shift the reading frame and make those protein-level labels disagree with the design.
+
+Pass ``species='mouse'`` or ``genome_version=38`` to match your data, ``transcript_ids={'TP53': 'ENST00000269305'}``
+to override particular genes, or ``tx_column='tx_id_h'`` to use transcript ids already present in the table.
+
+Designing a library
+~~~~~~~~~~~~~~~~~~~~~
+
+``cds_for_variants()`` attaches the strand and CDS blocks to each row, and ``run()`` reads the reading frame from
+those columns per variant. A single call therefore covers a whole library, however many genes it spans -- each
+variant is designed against its own transcript, and variants with no valid annotation simply get ordinary pegRNAs:
+
+.. code-block:: python
+
+   peg_df = prime.run(df, 'cBioPortal', chrom_dict=chrom_dict,
+                      silent_bystander=True, silent_per_mut=2, seed=0,
+                      RTT_lengths=[10,15,20,25,30], PBS_lengths=[10,13,15],
+                      pegRNAs_per_mut=10, sensor=True)
+
+   # the two design sets
+   plain     = peg_df[~peg_df['has_silent_bystander']]
+   bystander_designs = peg_df[peg_df['has_silent_bystander']]
+
+The annotation columns must be present on the input table: passing a table that has not been through
+``cds_for_variants()`` with ``silent_bystander=True`` raises an error naming the missing column rather than
+silently designing without bystanders.
+
+Output columns
+~~~~~~~~~~~~~~~~
+
+Seven columns are added, all present whether or not the feature is used:
+
+- **has_silent_bystander**: the column to filter on.
+
+- **n_bystander_muts**: number of silent changes carried by this pegRNA.
+
+- **bystander_positions**: ';'-separated offsets of those changes within the RTT.
+
+- **bystander_dist_to_edit**: nt from the nearest silent change to the edit.
+
+- **PAM_disrupted_edit**: PAM disrupted by the intended edit alone. This is what ``PAM_disrupted`` meant in version 2.0.
+
+- **PAM_disrupted_by_bystander**: PAM disrupted by a silent bystander alone.
+
+- **pegRNA_rank_within_group**: rank within each design type. Reproduces the version 2.0 ``pegRNA_rank``.
+
+Note that ``PAM_disrupted`` now means "disrupted by the intended edit **or** by a silent bystander", since that is what
+matters biologically and what the scoring functions read. With ``silent_bystander=False`` it is identical to
+``PAM_disrupted_edit``, so nothing changes for existing pipelines. Likewise, when ``pegRNAs_per_mut`` is set the limit
+applies to each design type separately, so a mutation always keeps both.
 
 Base Editing
 **************

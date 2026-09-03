@@ -90,10 +90,61 @@ class mutation:
 
         self.variant_type = var_type
         #self.alt_size = (positive or negative integer)
-        
+
         #information about the PAM sequence location
         self.PAM_idx_forward = None
         self.PAM_idx_rc = None
+
+        #--- optional annotation, used for silent bystander design ---
+        #Genomic coordinate of wt_forward[0]. Note this is distinct from
+        #self.seq_start above, which is an offset within wt_forward (always 0)
+        #rather than a chromosome coordinate. Set from the 'seq_start' column
+        #produced by df_formatter() for cBioPortal input; None otherwise.
+        self.genomic_start = None
+
+        #Strand the transcript is on ('+' or '-'), which is independent of the
+        #strand a given pegRNA's PAM falls on.
+        self.transcript_strand = None
+        self.exon_blocks = None
+
+        #Reading frame and exon boundaries; see bystander.cds_frame_map() and
+        #bystander.cds_boundaries().
+        self.frame_map = None
+        self.cds_boundaries = None
+
+    def genomic_positions(self, orientation):
+        """
+        Returns the genomic coordinate of every base of the sequence used for
+        pegRNA design in the given orientation, or None if this mutation carries
+        no genomic annotation.
+
+        For the '+' orientation the sequence is wt_forward, which runs along the
+        chromosome, so base i sits at genomic_start + i.
+
+        For the '-' orientation the sequence is wt_rc, the reverse complement, so
+        its bases run backwards along the chromosome: base i of wt_rc is base
+        (L - 1 - i) of wt_forward, and therefore sits at
+        genomic_start + (L - 1 - i).
+
+        Parameters
+        -----------
+        orientation
+            *type = str*
+
+            '+' or '-'; which of wt_forward / wt_rc the coordinates are wanted
+            for. This is the PAM strand, not the transcript strand.
+        """
+        assert orientation in ['+', '-'], "orientation must be '+' or '-'"
+
+        if self.genomic_start is None:
+            return None
+
+        L = len(self.wt_forward)
+
+        if orientation == '+':
+            return [self.genomic_start + i for i in range(L)]
+
+        return [self.genomic_start + (L - 1 - i) for i in range(L)]
 
 
 #-----------functions------------
@@ -151,6 +202,11 @@ def df_formatter(df, chrom_dict, context_size = 120):
     Takes in variants (in cBioPortal format!) and outputs dataframe with REF and ALT oligos with designated context_size
     that can be used by PEGG for creating pegRNAs.
 
+    Variant_Type must be one of SNP, DNP, TNP, ONP, INDEL, INS or DEL; any other
+    value raises a ValueError naming the row. Rows whose rebuilt sequence does
+    not match the reference genome at their own coordinates are reported and
+    dropped.
+
     Parameters
     -----------
     df
@@ -196,7 +252,12 @@ def df_formatter(df, chrom_dict, context_size = 120):
        
         chr_seq = chrom_dict[chrom].upper()
 
-        if vt in ['SNP', 'ONP', 'DNP', 'INDEL']:
+        #TNP belongs here with the other equal-length substitutions. A variant
+        #type that matches no branch leaves left_context/right_context holding
+        #the PREVIOUS row's values, so the rebuilt sequence silently describes
+        #the wrong locus -- caught below only because it fails the consistency
+        #check against the genome.
+        if vt in ['SNP', 'ONP', 'DNP', 'TNP', 'INDEL']:
             ref = ref
             alt = alt
             #assert ref == chr_seq[s-1:e], print(ref, chr_seq[s-1:e])
@@ -215,6 +276,14 @@ def df_formatter(df, chrom_dict, context_size = 120):
             alt = ''
             left_context = chr_seq[s-1-context_size:s-1]
             right_context = chr_seq[e:e+context_size]
+
+        else:
+            #Refuse rather than fall through: left_context and right_context are
+            #loop variables, so an unhandled type would silently carry over the
+            #previous row's sequence and design against the wrong locus.
+            raise ValueError(
+                "Unrecognised Variant_Type %r in row %s. Expected one of "
+                "SNP, DNP, TNP, ONP, INDEL, INS, DEL." % (vt, i))
 
         wt_seq = left_context + ref + right_context
         alt_seq = left_context + alt + right_context
@@ -617,9 +686,24 @@ def eligible_PAM_finder(mut, PAM, max_RTT_length, proto_size=19):
 
     return eligible_PAMS_F, eligible_PAMS_R
 
-def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths):
-    """ 
+def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths,
+                     silent_bystander=False, silent_per_mut=2, frame_mode=None,
+                     ORF_start=None, bystander_window_nt=5, max_bystander_muts=2,
+                     splice_buffer=3, rng=None):
+    """
     Generates pegRNAs for a given mutation.
+
+    When silent_bystander is True, each pegRNA is additionally emitted with up to
+    silent_per_mut variants of its RTT that carry synonymous ("silent") mutations
+    alongside the intended edit. The original pegRNA is always kept, so the two
+    designs can be compared; the has_silent_bystander column distinguishes them.
+
+    Note that a silent bystander can knock out the PAM as well, so PAM disruption
+    is reported three ways: PAM_disrupted (disrupted by either cause -- this is
+    what the scoring functions read, since it is what matters biologically),
+    PAM_disrupted_edit (by the intended edit alone, which is what PAM_disrupted
+    meant before silent bystanders were added), and PAM_disrupted_by_bystander
+    (by a silent bystander alone).
 
     Parameters
     ------------
@@ -664,8 +748,55 @@ def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths
         *type = list*
 
         List containing PBS lengths to desing pegRNAs for.
-    """
 
+    silent_bystander
+        *type = bool*
+
+        True/False whether to additionally generate pegRNAs carrying silent
+        bystander mutations. Default = False.
+
+    silent_per_mut
+        *type = int*
+
+        How many silent bystander variants to keep per pegRNA (i.e. per
+        PAM site x RTT length x PBS length). Chosen at random from the viable
+        options. Default = 2.
+
+    frame_mode
+        *type = str or None*
+
+        'cds' or 'orf'; see bystander.resolve_frame_source().
+
+    ORF_start
+        *type = int or None*
+
+        Frame offset within the design sequence, for 'orf' mode.
+
+    bystander_window_nt
+        *type = int*
+
+        How far from the edit silent mutations may be placed. Default = 5.
+
+    max_bystander_muts
+        *type = int*
+
+        Maximum number of silent changes per pegRNA. Default = 2.
+
+    splice_buffer
+        *type = int*
+
+        Minimum distance to keep from an exon boundary. Default = 3.
+
+    rng
+        *type = numpy.random.Generator or None*
+
+        Random generator used to sample which bystander options to keep. Pass a
+        seeded generator for reproducible libraries.
+    """
+    from . import bystander as _bystander
+
+    if rng is None:
+        rng = np.random.default_rng()
 
     #------function----
     protospacer_seqs = []
@@ -685,6 +816,27 @@ def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths
     RHA = [] #right homology arm (distance from end of mutation to end of RTT)
     PAM_disrupted_list = []
     proto_disrupted_list = []
+
+    #silent bystander descriptors
+    has_bystander_list = []
+    n_bystander_muts_list = []
+    bystander_positions_list = []
+    bystander_dist_list = []
+    #The PAM can be knocked out by the intended edit, by a silent bystander, or
+    #by both, and the three are reported separately:
+    #    PAM_disrupted           - by either (this is what the scoring uses)
+    #    PAM_disrupted_edit      - by the intended edit alone
+    #    PAM_disrupted_by_bystander - by a silent bystander alone
+    PAM_disrupted_edit_list = []
+    PAM_disrupted_by_bystander_list = []
+
+    #genomic coordinates of the design sequence, where the input format provides
+    #them; needed to look up the reading frame and to keep clear of splice sites
+    genomic_positions = mut.genomic_positions(orientation) if silent_bystander else None
+
+    #cache keyed on the RTT: PBS length does not change the RTT, so the same
+    #sequence is otherwise re-analysed once per PBS length
+    bystander_cache = {}
 
     #Get mutation info, depending on whether we're looking on the + or the - strand
     if orientation == '+':
@@ -735,6 +887,12 @@ def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths
                 RTT_PBS_seqs.append(None)
                 RTT_size.append(None)
                 PBS_size.append(None)
+                has_bystander_list.append(None)
+                n_bystander_muts_list.append(None)
+                bystander_positions_list.append(None)
+                bystander_dist_list.append(None)
+                PAM_disrupted_edit_list.append(None)
+                PAM_disrupted_by_bystander_list.append(None)
 
             else: #able to design the pegRNA
 
@@ -755,6 +913,60 @@ def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths
                 if len(left_RTT) < 3:
                     proto_disrupted = True
 
+                #------silent bystanders-------------------------------------
+                #Computed on the RTT in PAM-strand orientation, i.e. before the
+                #reverse complement below. Cached on the RTT sequence because the
+                #PBS length loop re-derives the same RTT each time round.
+                chosen_bystanders = []
+                if silent_bystander:
+                    if RTT in bystander_cache:
+                        chosen_bystanders = bystander_cache[RTT]
+                    else:
+                        #Phase of RTT[0], read in the transcript's own direction.
+                        #In 'orf' mode the frame is declared relative to the
+                        #input sequence, i.e. wt_forward. RTT_start is an offset
+                        #into seq_F, which is wt_rc on the - orientation, so it
+                        #has to be mapped back to a wt_forward offset first.
+                        if frame_mode == 'orf' and orientation == '-':
+                            frame_offset_ref = len(seq_F) - 1 - RTT_start
+                        else:
+                            frame_offset_ref = RTT_start
+
+                        frame0 = _bystander.frame_of_offset(
+                            frame_offset_ref, frame_mode, genomic_positions,
+                            mut.frame_map, ORF_start)
+
+                        options = []
+                        if frame0 is not None:
+                            rtt_positions = None
+                            if genomic_positions is not None:
+                                rtt_positions = genomic_positions[
+                                    RTT_start:RTT_start + len(RTT)]
+
+                            options = _bystander.silent_bystanders(
+                                RTT, len(left_RTT), ref_len, alt_len,
+                                mut.transcript_strand, orientation, frame0,
+                                RTT_genomic_positions=rtt_positions,
+                                frame_map=mut.frame_map,
+                                boundaries=mut.cds_boundaries,
+                                window_nt=bystander_window_nt,
+                                max_muts=max_bystander_muts,
+                                max_candidates=None,
+                                splice_buffer=splice_buffer,
+                                exon_blocks=mut.exon_blocks)
+
+                        #sample at random rather than taking the best few: the
+                        #point is to cover the design space, and the scoring
+                        #model has never seen an RTT carrying extra mismatches
+                        if len(options) > silent_per_mut:
+                            picks = rng.choice(len(options), size=silent_per_mut,
+                                               replace=False)
+                            chosen_bystanders = [options[int(p)] for p in picks]
+                        else:
+                            chosen_bystanders = options
+
+                        bystander_cache[RTT] = chosen_bystanders
+
                 #and finally reverse complement the RTT
                 RTT = str(Bio.Seq.Seq(RTT).reverse_complement())
 
@@ -767,35 +979,70 @@ def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths
                 
                 #iterate over PBS lengths for adding things to list
                 for PBS_length in PBS_lengths:
-                    RTT_seqs.append(RTT)
-                    RTT_size.append(RTT_length)
-                    PBS_size.append(PBS_length)
-                    distance_to_nick.append(len(left_RTT))
-                    RHA.append(len(right_RTT))
-                    PAM_disrupted_list.append(PAM_disrupted)
-                    proto_disrupted_list.append(proto_disrupted)
 
-                    #------add in PAM info, protospacer, + PBS/RTT_PBS
-                    #record info about PAM sequences
-                    if orientation == '+':
-                        PAM_start_list.append(PAM_start)
-                        PAM_end_list.append(PAM_end)
-                    elif orientation == '-':
-                        PAM_start_list.append(len(seq_F)-PAM_start)
-                        PAM_end_list.append(len(seq_F)-PAM_end)
-
-                    PAM_list.append(PAM_sequence)
-                    protospacer_seqs.append(protospacer)
-                    protospacer_wide_seqs.append(protospacer_wide)
-
-                    #----and finally design the PBS sequences----
+                    #----design the PBS sequence----
                     #NEED TO HAVE AN ERROR MESSAGE FOR PBS SEQUENCES LARGER THAN 17
                     PBS = seq_F[RTT_start-PBS_length:RTT_start]
                     PBS = str(Bio.Seq.Seq(PBS).reverse_complement())
-                    PBS_seqs.append(PBS)
 
-                    #---and then add it to the RTT to make the full 3' extension
-                    RTT_PBS_seqs.append(RTT+PBS)
+                    #the pegRNA as designed, followed by one row per silent
+                    #bystander variant of it. The unmodified design is always
+                    #kept so that the two can be compared directly.
+                    variants = [(RTT, None)]
+                    for opt in chosen_bystanders:
+                        variants.append(
+                            (str(Bio.Seq.Seq(opt['RTT']).reverse_complement()),
+                             opt))
+
+                    for RTT_variant, opt in variants:
+                        RTT_seqs.append(RTT_variant)
+                        RTT_size.append(RTT_length)
+                        PBS_size.append(PBS_length)
+                        distance_to_nick.append(len(left_RTT))
+                        RHA.append(len(right_RTT))
+                        proto_disrupted_list.append(proto_disrupted)
+
+                        if opt is None:
+                            has_bystander_list.append(False)
+                            n_bystander_muts_list.append(0)
+                            bystander_positions_list.append('')
+                            bystander_dist_list.append(None)
+                            by_bystander = False
+                        else:
+                            has_bystander_list.append(True)
+                            n_bystander_muts_list.append(opt['n_muts'])
+                            bystander_positions_list.append(
+                                ';'.join(str(p) for p in opt['positions']))
+                            bystander_dist_list.append(opt['dist_to_edit'])
+                            #did the bystander take out the PAM as well? read it
+                            #back off the bystander RTT in PAM-strand orientation
+                            new_PAM = opt['RTT'][3:3+len(PAM)]
+                            by_bystander = ((len(PAM_finder(new_PAM, PAM)) == 0)
+                                            and not PAM_disrupted)
+
+                        #PAM_disrupted reports disruption by EITHER cause, since
+                        #that is what matters biologically (and what the scoring
+                        #model reads); the two causes are also kept separately
+                        PAM_disrupted_edit_list.append(PAM_disrupted)
+                        PAM_disrupted_by_bystander_list.append(by_bystander)
+                        PAM_disrupted_list.append(PAM_disrupted or by_bystander)
+
+                        #------add in PAM info, protospacer, + PBS/RTT_PBS
+                        #record info about PAM sequences
+                        if orientation == '+':
+                            PAM_start_list.append(PAM_start)
+                            PAM_end_list.append(PAM_end)
+                        elif orientation == '-':
+                            PAM_start_list.append(len(seq_F)-PAM_start)
+                            PAM_end_list.append(len(seq_F)-PAM_end)
+
+                        PAM_list.append(PAM_sequence)
+                        protospacer_seqs.append(protospacer)
+                        protospacer_wide_seqs.append(protospacer_wide)
+                        PBS_seqs.append(PBS)
+
+                        #---and then add it to the RTT to make the full 3' extension
+                        RTT_PBS_seqs.append(RTT_variant+PBS)
 
     cols = [PAM_start_list, PAM_end_list, PAM_list, orientation, protospacer_wide_seqs, protospacer_seqs, RTT_seqs, RTT_size, PBS_seqs, PBS_size, RTT_PBS_seqs, distance_to_nick, RHA, PAM_disrupted_list, proto_disrupted_list]
     col_labels = ["PAM_start", "PAM_end", "PAM", "PAM_strand","Protospacer_30", "Protospacer", "RTT", "RTT_length", "PBS", "PBS_length", "RTT_PBS", "Distance_to_nick", "RHA_size", "PAM_disrupted", "Proto_disrupted"]
@@ -803,9 +1050,99 @@ def pegRNA_generator(mut, PAM, orientation, proto_size, RTT_lengths, PBS_lengths
 
     dtype_dict = dict(zip(col_labels, dtypes))
 
-    peg_df = pd.DataFrame(dict(zip(col_labels, cols))).dropna().reset_index().drop(columns='index').astype(dtype_dict)
+    #bystander columns are appended after the dropna()/astype() above, because
+    #bystander_dist is legitimately None for a pegRNA without bystanders and
+    #would otherwise drop every unmodified design
+    bystander_cols = [has_bystander_list, n_bystander_muts_list,
+                      bystander_positions_list, bystander_dist_list,
+                      PAM_disrupted_edit_list, PAM_disrupted_by_bystander_list]
+    bystander_labels = ["has_silent_bystander", "n_bystander_muts",
+                        "bystander_positions", "bystander_dist_to_edit",
+                        "PAM_disrupted_edit", "PAM_disrupted_by_bystander"]
+
+    all_cols = dict(zip(col_labels, cols))
+    all_cols.update(dict(zip(bystander_labels, bystander_cols)))
+
+    peg_df = pd.DataFrame(all_cols)
+    #drop only on the columns that were always required; a None in any of those
+    #marks a pegRNA that could not be designed
+    peg_df = peg_df.dropna(subset=col_labels).reset_index(drop=True)
+    peg_df = peg_df.astype(dtype_dict)
+
+    #The not-designable branch pads every column with None, so pandas infers
+    #object dtype for the bystander columns whenever any pegRNA was skipped.
+    #Cast them back explicitly, or a bool column silently becomes object and
+    #`~df['has_silent_bystander']` does integer negation instead of logical not.
+    peg_df['has_silent_bystander'] = peg_df['has_silent_bystander'].astype(bool)
+    peg_df['PAM_disrupted_edit'] = peg_df['PAM_disrupted_edit'].astype(bool)
+    peg_df['PAM_disrupted_by_bystander'] = peg_df['PAM_disrupted_by_bystander'].astype(bool)
+    peg_df['n_bystander_muts'] = peg_df['n_bystander_muts'].astype(int)
+    peg_df['bystander_positions'] = peg_df['bystander_positions'].astype(str)
 
     return peg_df
+
+def _alt_context_from_RTT(val, wt, alt):
+    """
+    Rebuilds the alternate context sequence for a pegRNA that carries silent
+    bystander mutations, so that it reflects everything the pegRNA installs
+    rather than just the intended edit.
+
+    alt_w_context holds the intended edit only. The bystanders live in the RTT,
+    so the edited segment is taken from the RTT and spliced back into the
+    wild-type context at the position the RTT covers. Returns None if the RTT
+    cannot be located unambiguously, in which case the caller records an error
+    instead of emitting a sensor that would misreport the outcome.
+
+    Parameters
+    -----------
+    val
+        *type = pd.Series*
+
+        One row of the pegRNA dataframe.
+
+    wt
+        *type = str*
+
+        Wild-type context sequence, forward orientation.
+
+    alt
+        *type = str*
+
+        Alternate context sequence carrying the intended edit only.
+    """
+    strand = val['PAM_strand']
+    RTT = val['RTT']
+    RHA = val['RHA_size']
+    dist_to_nick = val['Distance_to_nick']
+
+    #the RTT is stored reverse-complemented; undo that to get it in the
+    #orientation of the strand the PAM sits on
+    rtt_fwd = str(Bio.Seq.Seq(RTT).reverse_complement())
+
+    #and put it in the forward orientation of the context sequence
+    if strand == '-':
+        rtt_fwd = str(Bio.Seq.Seq(rtt_fwd).reverse_complement())
+
+    #The RTT spans the edit: dist_to_nick bases of left homology, then the
+    #alternate allele, then RHA bases of right homology. Anchor it on the
+    #alternate context sequence using the homology arm that is unchanged by the
+    #bystanders, then overwrite that span.
+    edit_start = len(val['left_context'])
+    edit_end = edit_start + len(val['ALT'])
+
+    if strand == '+':
+        seg_start = edit_start - dist_to_nick
+        seg_end = edit_end + RHA
+    else:
+        #on the - strand the arms are swapped relative to the forward sequence
+        seg_start = edit_start - RHA
+        seg_end = edit_end + dist_to_nick
+
+    if seg_start < 0 or seg_end > len(alt) or len(rtt_fwd) != (seg_end - seg_start):
+        return None
+
+    return alt[:seg_start] + rtt_fwd + alt[seg_end:]
+
 
 def sensor_generator(df, proto_size, before_proto_context=5, sensor_length=60, sensor_orientation = 'reverse-complement'):
     """ 
@@ -848,6 +1185,8 @@ def sensor_generator(df, proto_size, before_proto_context=5, sensor_length=60, s
     sensor_wt_seqs = []
     sensor_alt_seqs = []
 
+    has_bystanders = 'has_silent_bystander' in df.keys()
+
     for i, val in df.iterrows():
         wt = val['wt_w_context']
         alt = val['alt_w_context']
@@ -857,6 +1196,20 @@ def sensor_generator(df, proto_size, before_proto_context=5, sensor_length=60, s
         pam_end = val['PAM_end']
         RTT_PBS = val['RTT_PBS']
         RHA = val['RHA_size']
+
+        #The sensor has to report what the pegRNA actually installs. For a
+        #pegRNA carrying silent bystanders that is the intended edit PLUS the
+        #bystander mutations, which are in the RTT but not in alt_w_context, so
+        #the alternate sequence is rebuilt from the RTT itself. Without this the
+        #sensor either fails the homology check below or, worse, silently
+        #reports an outcome the pegRNA does not produce.
+        if has_bystanders and val['has_silent_bystander']:
+            alt = _alt_context_from_RTT(val, wt, alt)
+            if alt is None:
+                sensor_wt_seqs.append(None)
+                sensor_alt_seqs.append(None)
+                sensor_error.append('could not place bystander RTT in context sequence')
+                continue
 
         #if PAM is on negative strand; flip it
         if strand == '-':
@@ -905,8 +1258,17 @@ def sensor_generator(df, proto_size, before_proto_context=5, sensor_length=60, s
 
                         rha_seq = RTT_PBS[:RHA]
 
+                        #The right homology arm is checked against the edited
+                        #sensor rather than the wild-type one: silent bystanders
+                        #sit inside that arm, so it legitimately no longer
+                        #matches the wild-type locus. For a pegRNA without
+                        #bystanders the two are identical there and this is the
+                        #same check as before.
+                        homology_ref = sensor_alt if (
+                            has_bystanders and val['has_silent_bystander']) else sensor_wt
+
                         #check that the homology overhang fits within the sensor sequence
-                        if rha_seq not in sensor_wt:
+                        if rha_seq not in homology_ref:
                             sensor_wt_seqs.append(None)
                             sensor_alt_seqs.append(None)
                             sensor_error.append("sensor too small; increase sensor size in parameters; or decrease before_proto_context")
@@ -919,7 +1281,10 @@ def sensor_generator(df, proto_size, before_proto_context=5, sensor_length=60, s
                     if sensor_orientation == 'forward':
                         rha_seq = str(Bio.Seq.Seq(RTT_PBS[:RHA]).reverse_complement())
 
-                        if rha_seq not in sensor_wt:
+                        homology_ref = sensor_alt if (
+                            has_bystanders and val['has_silent_bystander']) else sensor_wt
+
+                        if rha_seq not in homology_ref:
                             sensor_wt_seqs.append(None)
                             sensor_alt_seqs.append(None)
                             sensor_error.append("sensor too small; increase sensor size in parameters; or decrease before_proto_context")
@@ -1205,9 +1570,12 @@ def other_filtration(pegRNA_df, RE_sites=None, polyT_threshold=4):
 
 def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Score', pegRNAs_per_mut = 'All',
         RTT_lengths = [5,10,15,25,30], PBS_lengths = [8,10,13,15], min_RHA_size = 1,
-        RE_sites=None, polyT_threshold=4, 
-        proto_size=19, context_size = 120, 
-        before_proto_context=5, sensor_length=60, sensor_orientation = 'reverse-complement', sensor=True):
+        RE_sites=None, polyT_threshold=4,
+        proto_size=19, context_size = 120,
+        before_proto_context=5, sensor_length=60, sensor_orientation = 'reverse-complement', sensor=True,
+        silent_bystander=False, silent_per_mut=2, ORF_start=None,
+        bystander_window_nt=5, max_bystander_muts=2, splice_buffer=3,
+        seed=None):
 
     """ 
     Master function for generating pegRNAs. Takes as input a dataframe containing mutations in one of the acceptable formats.
@@ -1236,7 +1604,7 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
 
         PAM sequence for searching. Default = "NGG". Can include any nucleic acid code (e.g. PAM = "NRCH").
 
-    rank_by
+    rankby
         *type = str*
 
         What pegRNA parameter to rank pegRNAs by. Options = "PEGG2_Score" (weighted linear regression of different pegRNA parameters)
@@ -1301,7 +1669,66 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
     sensor
         *type = bool*
 
-        True/False whether to include a sensor in the pegRNA design or not. 
+        True/False whether to include a sensor in the pegRNA design or not.
+
+    silent_bystander
+        *type = bool*
+
+        True/False whether to additionally design pegRNAs carrying synonymous
+        ("silent") bystander mutations alongside the intended edit. Default =
+        False, in which case none of the parameters below have any effect and
+        the output is unchanged.
+
+        When True, the output contains BOTH the ordinary pegRNAs and the
+        bystander-carrying ones, distinguished by the has_silent_bystander
+        column, so that users can filter to either set afterwards.
+
+        Requires reading frame information, which differs by input format. For
+        'cBioPortal' input it is read per row from the 'start_end_cds' and
+        'transcript_strand' columns that bystander.cds_for_variants() attaches,
+        so one call can span several genes. 'WT_ALT' and 'PrimeDesign' carry no
+        genomic coordinates and instead need ORF_start, with the input sequence
+        in frame. See pegg.bystander for details.
+
+    silent_per_mut
+        *type = int*
+
+        How many silent bystander designs to keep per pegRNA, i.e. per
+        PAM site x RTT length x PBS length. Chosen at random from the viable
+        options. Default = 2, so a pegRNA with bystanders available contributes
+        three rows: itself, plus two bystander variants.
+
+    ORF_start
+        *type = int or None*
+
+        0, 1 or 2: the offset within the input sequence at which the reading
+        frame begins. Required for 'WT_ALT' and 'PrimeDesign' input when
+        silent_bystander=True, in which case the input sequence must be entirely
+        coding sequence.
+
+    bystander_window_nt
+        *type = int*
+
+        How far from the edit, in nt, silent mutations may be placed.
+        Default = 5.
+
+    max_bystander_muts
+        *type = int*
+
+        Maximum number of silent changes carried by one pegRNA. Default = 2.
+
+    splice_buffer
+        *type = int*
+
+        Minimum distance to keep from an exon boundary, to avoid disrupting a
+        splice donor or acceptor. Only enforced for 'cBioPortal' input, where
+        exon boundaries are known. Default = 3.
+
+    seed
+        *type = int or None*
+
+        Seed for the random selection of bystander designs. Pass an integer to
+        make a library reproducible. Default = None (different each run).
     """
 
 
@@ -1323,6 +1750,52 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
 
         assert chrom_dict != None, "Genome required to use cBioPortal input format. Load genome with genome_loader() and re-run."
 
+    #--- silent bystander setup -------------------------------------------
+    #Resolved once, before the mutation loop. resolve_frame_source() raises if
+    #the reading frame cannot be established for the given input format, rather
+    #than falling back to a guess: a wrong frame produces changes that look
+    #silent but are not, and that error would only surface after the library had
+    #been synthesised and sequenced.
+    frame_mode = None
+    frame_map = None
+    boundaries = None
+    rng = None
+
+    frame_cache = None
+
+    if silent_bystander:
+        from . import bystander as _bystander
+
+        #'cBioPortal' input carries its reading frame per row, in the columns
+        #bystander.cds_for_variants() attaches, so that one call can span several
+        #genes -- each variant is designed against its own transcript. The other
+        #formats have no genomic coordinates and declare one frame for the call.
+        if input_format == 'cBioPortal':
+            frame_mode = 'cds'
+            frame_cache = {}
+            if 'start_end_cds' not in input_df.columns:
+                raise ValueError(
+                    "silent_bystander=True with input_format='cBioPortal' needs "
+                    "the reading frame annotation on the input table. Run\n"
+                    "    mutations, cds = bystander.cds_for_variants(mutations, db)\n"
+                    "first, which adds the 'start_end_cds' and 'transcript_strand' "
+                    "columns, or set silent_bystander=False.")
+        else:
+            frame_mode, frame_map, boundaries = _bystander.resolve_frame_source(
+                input_format, ORF_start=ORF_start)
+
+        rng = np.random.default_rng(seed)
+
+        if seed is None:
+            print('Note: silent bystander designs are chosen at random. Pass '
+                  'seed=<int> to make the library reproducible.')
+
+        if frame_mode == 'orf':
+            print("Note: input_format='%s' carries no genomic coordinates, so "
+                  "CDS membership and splice sites cannot be checked. The input "
+                  "sequence is assumed to be entirely coding and in frame from "
+                  "offset ORF_start=%d." % (input_format, ORF_start))
+
     #and format the input df
     input_df = input_formatter(input_df, input_format, chrom_dict, context_size)
 
@@ -1332,10 +1805,45 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
 
 
         mut = mutation(val['wt_w_context'], val['alt_w_context'], val['left_context'], val['right_context'], val['Variant_Type'], val['REF'], val['ALT'], chrom=None, genome=None)
+
+        #carry genomic coordinates through when the input format provides them
+        #(df_formatter records seq_start for cBioPortal input); these are needed
+        #to look up the reading frame for silent bystander design
+        if 'seq_start' in val:
+            mut.genomic_start = val['seq_start']
+        if 'Chromosome' in val:
+            mut.chrom = val['Chromosome']
+
+        #reading frame annotation, used only for silent bystander design. For
+        #cBioPortal input it comes from this variant's own row, so genes with
+        #different transcripts (or none at all) can share a single run() call.
+        if frame_cache is not None:
+            row_map, row_bounds, row_strand = _bystander.frame_source_from_row(
+                val, cache=frame_cache)
+            mut.transcript_strand = row_strand
+            mut.frame_map = row_map
+            mut.cds_boundaries = row_bounds
+            #the same blocks confine bystanders to the edit's own exon
+            _blocks = val.get('start_end_cds') if hasattr(val, 'get') else None
+            mut.exon_blocks = None if isinstance(_blocks, float) else _blocks
+        else:
+            #'orf' mode: the frame comes from ORF_start and there is no strand
+            mut.transcript_strand = None
+            mut.frame_map = frame_map
+            mut.cds_boundaries = boundaries
+            mut.exon_blocks = None
+
         mut.PAM_idx_forward, mut.PAM_idx_rc = eligible_PAM_finder(mut, PAM, max(RTT_lengths), proto_size)
 
-        peg_df_plus = pegRNA_generator(mut, PAM, '+', proto_size, RTT_lengths, PBS_lengths)
-        peg_df_minus = pegRNA_generator(mut, PAM, '-', proto_size, RTT_lengths, PBS_lengths)
+        bystander_kwargs = dict(silent_bystander=silent_bystander,
+                                silent_per_mut=silent_per_mut,
+                                frame_mode=frame_mode, ORF_start=ORF_start,
+                                bystander_window_nt=bystander_window_nt,
+                                max_bystander_muts=max_bystander_muts,
+                                splice_buffer=splice_buffer, rng=rng)
+
+        peg_df_plus = pegRNA_generator(mut, PAM, '+', proto_size, RTT_lengths, PBS_lengths, **bystander_kwargs)
+        peg_df_minus = pegRNA_generator(mut, PAM, '-', proto_size, RTT_lengths, PBS_lengths, **bystander_kwargs)
 
         #need to translate PAM indexing for the - strand!!!!
         #convert to genome coordinates as well...
@@ -1373,9 +1881,33 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         idxs = subset.index
         peg_df.loc[idxs, 'pegRNA_rank'] = list(range(1,len(subset)+1))
 
+    #Rank within each design type as well. Bystander-carrying pegRNAs tend to
+    #score differently from plain ones -- a bystander can knock out the PAM, and
+    #shifts RTT_GC_content, both of which carry positive weight in the scoring
+    #model -- so a single pool would let one
+    #type crowd out the other, and truncating it could leave a mutation with no
+    #plain design at all (or no bystander design). Ranking within type keeps both
+    #sets usable no matter how the output is filtered.
+    if silent_bystander:
+        for mm in uniq_muts:
+            for flag in [False, True]:
+                subset = peg_df[(peg_df['mutation_idx']==mm) &
+                                (peg_df['has_silent_bystander']==flag)]
+                if len(subset)==0:
+                    continue
+                subset = subset.sort_values(by=rankby, ascending=False)
+                peg_df.loc[subset.index, 'pegRNA_rank_within_group'] = list(range(1,len(subset)+1))
+    else:
+        peg_df['pegRNA_rank_within_group'] = peg_df['pegRNA_rank']
+
     if pegRNAs_per_mut not in ['All', 'all', ' All', ' all', 'all ', 'All ']:
-        #filter
-        peg_df = peg_df[peg_df['pegRNA_rank']<=pegRNAs_per_mut]
+        #filter. With bystanders switched on the limit applies to each design
+        #type separately, so that pegRNAs_per_mut plain designs are always
+        #returned alongside whatever bystander designs were generated.
+        if silent_bystander:
+            peg_df = peg_df[peg_df['pegRNA_rank_within_group']<=pegRNAs_per_mut]
+        else:
+            peg_df = peg_df[peg_df['pegRNA_rank']<=pegRNAs_per_mut]
 
     #create sensor if desired
     if sensor == True:
@@ -1515,6 +2047,65 @@ def split_word(word):
     """
     return [char for char in word]
 
+def _mark_bystanders(ax, val, rtt_left_edge, RTT_len, sensor_orientation):
+    """
+    Draws a marker over each silent bystander mutation in the RTT row of a
+    sensor plot, so that they can be distinguished from the intended edit
+    (which is marked in red as 'Mutated Bases').
+
+    Does nothing for pegRNAs without bystanders, or for dataframes generated
+    without the feature.
+
+    Parameters
+    -----------
+    ax
+        *type = matplotlib axis*
+
+        The axis that sensor_viz() is drawing on.
+
+    val
+        *type = pd.Series*
+
+        The row of the pegRNA dataframe being visualised.
+
+    rtt_left_edge
+        *type = int*
+
+        x position of the first base of the RTT in the plot.
+
+    RTT_len
+        *type = int*
+
+        Length of the RTT in nt.
+
+    sensor_orientation
+        *type = str*
+
+        'reverse-complement' or 'forward'.
+    """
+    if 'has_silent_bystander' not in val.keys():
+        return
+    if not val['has_silent_bystander']:
+        return
+
+    positions = val['bystander_positions']
+    if positions is None or positions == '':
+        return
+
+    #positions are offsets into the RTT in PAM-strand orientation, counted from
+    #the nick; the plot draws the RTT with its 3' end at the left, so they are
+    #measured from the far edge
+    for p in [int(x) for x in str(positions).split(';')]:
+        if sensor_orientation == 'reverse-complement':
+            x = rtt_left_edge + (RTT_len - 1 - p)
+        else:
+            x = rtt_left_edge + p
+
+        ax.add_patch(patches.Rectangle((x, 3 if sensor_orientation == 'reverse-complement' else 0),
+                                       1, 1, fill=False, edgecolor='tab:cyan',
+                                       lw=3, label='Silent bystander'))
+
+
 def sensor_viz(df_w_sensor, i):    
     """ 
     Function for visualizing the pegRNA aligned to the sensor. Input = dataframe with pegRNA-sensor pairs
@@ -1546,9 +2137,23 @@ def sensor_viz(df_w_sensor, i):
         #protospacer
         proto = df_w_sensor.iloc[i]['Protospacer']
         proto_start = sensor_comp.find(proto[::-1][:19])
-        proto_left = ['-']*(proto_start)
-        proto_right = ['-']*(len(sensor)-proto_start-len(proto))
-        split_p = split_word(proto[::-1])
+        if proto_start < 0:
+            raise ValueError(
+                'could not locate the protospacer within the sensor for row %d. '
+                'This happens when the sensor is too short to contain it, or in '
+                'highly repetitive sequence; check sensor_error and '
+                'sensor_length for this pegRNA.' % i)
+
+        #clip to the visible window: a protospacer running past the sensor edge
+        #would otherwise drop its padding and leave a row of the wrong length
+        proto_rev = proto[::-1]
+        p_clip_right = max(0, proto_start + len(proto) - len(sensor))
+        if p_clip_right:
+            proto_rev = proto_rev[:len(proto_rev)-p_clip_right]
+
+        proto_left = ['-']*max(0, proto_start)
+        proto_right = ['-']*max(0, len(sensor)-proto_start-len(proto))
+        split_p = split_word(proto_rev)
         split_proto = proto_left + split_p + proto_right
 
         #RTT_PBS
@@ -1557,9 +2162,21 @@ def sensor_viz(df_w_sensor, i):
         RTT_PBS = df_w_sensor.iloc[i]['RTT_PBS']
         RTT_PBS_end = proto_start+3+PBS_len
         RTT_PBS_start = RTT_PBS_end - len(RTT_PBS)
-        left = ['-']*RTT_PBS_start
-        right = ['-']*(len(sensor) - RTT_PBS_end)
-        split_RTTPBS = split_word(RTT_PBS)
+
+        #The 3' extension can reach past the edge of the sensor window, which
+        #makes RTT_PBS_start negative (or RTT_PBS_end run past the sensor).
+        #['-'] * a negative number is an empty list, so the padding silently
+        #vanishes and this row ends up longer than the others -- an array
+        #matplotlib cannot render. Clip the extension to the part that is
+        #actually visible instead.
+        clip_left = max(0, -RTT_PBS_start)
+        clip_right = max(0, RTT_PBS_end - len(sensor))
+        visible_RTT_PBS = RTT_PBS[clip_left:len(RTT_PBS)-clip_right] \
+            if clip_right else RTT_PBS[clip_left:]
+
+        left = ['-']*max(0, RTT_PBS_start)
+        right = ['-']*max(0, len(sensor) - RTT_PBS_end)
+        split_RTTPBS = split_word(visible_RTT_PBS)
         split_RTT_PBS = left + split_RTTPBS + right
 
         #translation for coloring
@@ -1620,14 +2237,31 @@ def sensor_viz(df_w_sensor, i):
 
         ax.add_patch(patches.Rectangle((proto_start+3-RTT_len, 3), RHA, 1, fill=False, edgecolor='tab:orange', lw=3, label='RHA')) #protospacer location
 
+        #and mark any silent bystander mutations, so that they can be told apart
+        #from the intended edit at a glance
+        _mark_bystanders(ax, df_w_sensor.iloc[i], proto_start+3-RTT_len, RTT_len,
+                         'reverse-complement')
+
     elif sensor_orientation == 'forward':
 
         #protospacer
         proto = df_w_sensor.iloc[i]['Protospacer']
         proto_start = sensor.find(proto[1:])-1 #account for G+19 or G+20
-        proto_left = ['-']*(proto_start)
-        proto_right = ['-']*(len(sensor)-proto_start-len(proto))
-        split_p = split_word(proto)
+        if proto_start < 0:
+            raise ValueError(
+                'could not locate the protospacer within the sensor for row %d. '
+                'This happens when the sensor is too short to contain it, or in '
+                'highly repetitive sequence; check sensor_error and '
+                'sensor_length for this pegRNA.' % i)
+
+        proto_vis = proto
+        p_clip_right = max(0, proto_start + len(proto) - len(sensor))
+        if p_clip_right:
+            proto_vis = proto_vis[:len(proto_vis)-p_clip_right]
+
+        proto_left = ['-']*max(0, proto_start)
+        proto_right = ['-']*max(0, len(sensor)-proto_start-len(proto))
+        split_p = split_word(proto_vis)
         split_proto = proto_left + split_p + proto_right
 
         #RTT_PBS
@@ -1641,9 +2275,17 @@ def sensor_viz(df_w_sensor, i):
         RTT_PBS_start = proto_start + len(proto) -3 - PBS_len
         RTT_PBS_end = proto_start + len(proto) -3 + RTT_len
 
-        left = ['-']*RTT_PBS_start
-        right = ['-']*(len(sensor) - RTT_PBS_end)
-        split_RTTPBS = split_word(RTT_PBS)
+        #as above: clip the 3' extension to the part visible in the sensor, so
+        #that a negative offset cannot silently drop the padding and leave this
+        #row longer than the rest
+        clip_left = max(0, -RTT_PBS_start)
+        clip_right = max(0, RTT_PBS_end - len(sensor))
+        visible_RTT_PBS = RTT_PBS[clip_left:len(RTT_PBS)-clip_right] \
+            if clip_right else RTT_PBS[clip_left:]
+
+        left = ['-']*max(0, RTT_PBS_start)
+        right = ['-']*max(0, len(sensor) - RTT_PBS_end)
+        split_RTTPBS = split_word(visible_RTT_PBS)
         split_RTT_PBS = left + split_RTTPBS + right
 
         #translation for coloring
@@ -1705,9 +2347,21 @@ def sensor_viz(df_w_sensor, i):
 
         ax.add_patch(patches.Rectangle((mut_start+1, 0), RHA, 1, fill=False, edgecolor='tab:orange', lw=3, label='RHA')) #protospacer location
 
+        _mark_bystanders(ax, df_w_sensor.iloc[i], RTT_PBS_start + PBS_len,
+                         RTT_len, 'forward')
+
     ax.set_yticklabels(["3'", "5'", "3'", "5'"], rotation=0, fontsize=14)
 
-    ax.legend(bbox_to_anchor=(1.16,.78), fontsize=14)
+    #de-duplicate the legend: one marker is drawn per bystander mutation, so the
+    #same label would otherwise appear several times
+    handles, labels = ax.get_legend_handles_labels()
+    seen_labels = {}
+    for handle, label in zip(handles, labels):
+        if label not in seen_labels:
+            seen_labels[label] = handle
+
+    ax.legend(seen_labels.values(), seen_labels.keys(),
+              bbox_to_anchor=(1.16,.78), fontsize=14)
 
     ref_allele = df_w_sensor.iloc[i]['REF']
     mut_allele = df_w_sensor.iloc[i]['ALT']

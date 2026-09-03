@@ -293,13 +293,13 @@ def run_base(input_df, input_format, chrom_dict=None, PAM = "NGG", filtration = 
 
     #make sure it's a SNP
     if auto_SNP_filter==False:
-        not_allowed = ['ONP', 'DEL', 'INS', 'INDEL']
+        not_allowed = ['ONP', 'DNP', 'TNP', 'DEL', 'INS', 'INDEL']
         for i in not_allowed:
             assert i not in vts, "Only SNPs can be modeled with base editing; remove non-SNPs from mutation list or select auto_SNP_filter=True"
 
     elif auto_SNP_filter==True:
         input_df = input_df[input_df['Variant_Type']=='SNP']
-        not_allowed = ['ONP', 'DEL', 'INS', 'INDEL']
+        not_allowed = ['ONP', 'DNP', 'TNP', 'DEL', 'INS', 'INDEL']
         for i in not_allowed:
             if i in vts:
                 print("Only SNPs can be modeled with base editing; Non-SNPs automatically removed from list")
