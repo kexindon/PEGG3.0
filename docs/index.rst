@@ -10,6 +10,9 @@
    :width: 200px
    :height: 200px
 
+`This is PEGG 3.0. For the original PEGG 2.0 documentation, click here <https://pegg.readthedocs.io/en/latest/>`_
+******************************************************************************************************************
+
 `Click here to read the Nature Biotechnology article <https://www.nature.com/articles/s41587-024-02172-9>`_ 
 ******************************************************************************************************************
 

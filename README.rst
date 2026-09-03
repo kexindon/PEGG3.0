@@ -1,5 +1,8 @@
 |PEGG| PEGG: Prime Editing Guide Generator
 ======================================================
+`This is PEGG 3.0. For the original PEGG 2.0, see samgould2/PEGG2.0 <https://github.com/samgould2/PEGG2.0>`_
+**************************************************************************************************************
+
 Version 3.0 (Original version released Sept. 2023; Version 2.0 updated Mar. 2024; Version 3.0 updated Aug. 2026)
 ****************************************************************************************************************
 .. |PEGG| image:: docs/PEGG_3.png

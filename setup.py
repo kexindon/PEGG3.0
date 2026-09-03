@@ -6,7 +6,7 @@ setup(
     name = 'pegg',
     author = 'Samuel Gould',
     author_email = 'samgould@mit.edu',
-    url = 'https://github.com/samgould2/PEGG2.0',
+    url = 'https://github.com/kexindon/PEGG3.0',
     version = '3.0.0',
     description = 'Prime Editing Guide Generator, with silent bystander mutations',
     #package_dir = {'pegg': ''},
