@@ -9,6 +9,8 @@ setup(
     url = 'https://github.com/kexindon/PEGG3.0',
     version = '3.0.0',
     description = 'Prime Editing Guide Generator, with silent bystander mutations',
+    long_description = open('README.rst', encoding='utf-8').read(),
+    long_description_content_type = 'text/x-rst',
     #package_dir = {'pegg': ''},
     #packages = setuptools.find_packages(), #['pegg'],
     #package_dir = {'pegg': '', 'azimuth': 'pegg/bin/Azimuth-2.0/azimuth'},

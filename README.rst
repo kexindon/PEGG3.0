@@ -5,11 +5,11 @@
 
 Version 3.0 (Original version released Sept. 2023; Version 2.0 updated Mar. 2024; Version 3.0 updated Aug. 2026)
 ****************************************************************************************************************
-.. |PEGG| image:: docs/PEGG_3.png
+.. |PEGG| image:: https://raw.githubusercontent.com/kexindon/PEGG3.0/main/docs/PEGG_3.png
    :width: 200px
    :height: 200px
 
-`Full Documentation is available here (pegg.readthedocs.io) <https://pegg.readthedocs.io/en/latest/>`_
+`Full Documentation is available here (pegg30.readthedocs.io) <https://pegg30.readthedocs.io/en/latest/>`_
 
 `Click here to read the Nature Biotechnology article <https://www.nature.com/articles/s41587-024-02172-9>`_ 
 
@@ -88,7 +88,7 @@ The design parameters are all optional and all have defaults:
 * **sensor:** ``sensor`` (True/False), ``sensor_length``, ``sensor_orientation``, ``before_proto_context``.
 * ``chrom_dict`` -- required for ``cBioPortal`` input, from ``prime.genome_loader()``.
 
-See the `full documentation <https://pegg.readthedocs.io/en/latest/>`_ for what each one does.
+See the `full documentation <https://pegg30.readthedocs.io/en/latest/>`_ for what each one does.
 
 Silent bystander mutations
 ---------------------------
