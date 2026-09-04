@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: pegg
-Version: 3.0.0
+Version: 3.0.1
 Summary: Prime Editing Guide Generator, with silent bystander mutations
 Home-page: https://github.com/kexindon/PEGG3.0
 Author: Samuel Gould
@@ -15,7 +15,7 @@ Requires-Dist: Bio>=1.4.0
 Requires-Dist: cyvcf2==0.30.18
 Requires-Dist: matplotlib>=3.5.1
 Requires-Dist: mock>=4.0.3
-Requires-Dist: numpy>=1.21.5
+Requires-Dist: numpy<2,>=1.21.5
 Requires-Dist: pandas>=1.4.2
 Requires-Dist: seaborn>=0.11.2
 Requires-Dist: setuptools>=61.2.0
