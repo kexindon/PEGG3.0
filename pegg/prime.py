@@ -20,6 +20,7 @@ from cyvcf2 import VCF
 from importlib.resources import files
 
 from . import crispor_azimuth #python script included in directory; from CRISPOR website github with modifications
+from . import optiprime as _optiprime
 
 warnings.filterwarnings('ignore')
 
@@ -1575,7 +1576,10 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         before_proto_context=5, sensor_length=60, sensor_orientation = 'reverse-complement', sensor=True,
         silent_bystander=False, silent_per_mut=2, ORF_start=None,
         bystander_window_nt=5, max_bystander_muts=2, splice_buffer=3,
-        seed=None):
+        seed=None,
+        optiprime=False, optiprime_cutoff=None,
+        optiprime_group=_optiprime.DEFAULT_GROUP,
+        optiprime_src=None, optiprime_python=None):
 
     """ 
     Master function for generating pegRNAs. Takes as input a dataframe containing mutations in one of the acceptable formats.
@@ -1729,6 +1733,57 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
 
         Seed for the random selection of bystander designs. Pass an integer to
         make a library reproducible. Default = None (different each run).
+
+    optiprime
+        *type = bool*
+
+        True/False whether to score pegRNAs with OptiPrime, adding an
+        OptiPrime_Score column. Default = False. Implied by setting
+        rankby='OptiPrime_Score' or optiprime_cutoff.
+
+        Unlike PEGG2_Score and RF_Score, the OptiPrime score is on an absolute
+        scale: it is the predicted fraction of alleles carrying the intended
+        edit, so 0.2 means ~20% editing.
+
+        Requires a separate OptiPrime installation; see pegg.optiprime and the
+        optiprime_src/optiprime_python parameters.
+
+    optiprime_cutoff
+        *type = float or None*
+
+        Drop pegRNAs whose predicted editing efficiency is below this, e.g. 0.2
+        to keep only pegRNAs predicted above 20%. Default = None (no filtering).
+
+        Applied before ranking and before pegRNAs_per_mut, so the per-mutation
+        limit is filled from the pegRNAs that passed. A mutation with nothing
+        above the cutoff drops out of the output entirely, so check the returned
+        set covers every intended mutation before ordering a library.
+
+    optiprime_group
+        *type = str*
+
+        Which training group's parameters to score against, as <lab>_<cell
+        line>. Default = 'Liu_HeLa'.
+
+        This is how MMR status enters the model, and HeLa is MMR-proficient.
+        OptiPrime's authors recommend the default for general use: pegRNAs
+        optimized on HeLa parameters tend to hold up in HEK293T, but not the
+        reverse, and all of the paper's primary-cell and in vivo validations
+        used it. Prefer the default even when working in another cell type.
+
+    optiprime_src
+        *type = str or None*
+
+        Path to a clone of github.com/alvin-hsu/optiprime-src. Falls back to the
+        OPTIPRIME_SRC environment variable.
+
+    optiprime_python
+        *type = str or None*
+
+        Python interpreter with OptiPrime's dependencies installed. OptiPrime
+        needs Python 3.11 and its own jax stack, which cannot coexist with
+        pegg's pinned environment, so it runs in a subprocess. Falls back to the
+        OPTIPRIME_PYTHON environment variable.
     """
 
 
@@ -1873,6 +1928,32 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
     #and calculate the RF score
     peg_df = RF_score(peg_df)
 
+    #--- OptiPrime scoring ----------------------------------------------------
+    #Run before ranking, so that rankby='OptiPrime_Score' has something to sort
+    #on. Scored in HeLa (MMR-proficient) parameters, OptiPrime's own default and
+    #what its authors recommend for general use; see pegg.optiprime.
+    if optiprime or (rankby == 'OptiPrime_Score') or (optiprime_cutoff is not None):
+        peg_df = _optiprime.score(peg_df,
+                                  optiprime_src=optiprime_src,
+                                  optiprime_python=optiprime_python,
+                                  group=optiprime_group)
+
+        if optiprime_cutoff is not None:
+            n_before = len(peg_df)
+            #An unscored pegRNA has no evidence of clearing the cutoff, so it is
+            #dropped rather than kept: a cutoff is a promise about what is in the
+            #output. The count is reported so a systematic failure to score is
+            #visible rather than silently shrinking the library.
+            n_unscored = int(peg_df['OptiPrime_Score'].isna().sum())
+            peg_df = peg_df[peg_df['OptiPrime_Score'] >= optiprime_cutoff]
+            print('OptiPrime cutoff %.3g: kept %d/%d pegRNAs (%d were unscored)'
+                  % (optiprime_cutoff, len(peg_df), n_before, n_unscored))
+
+            if len(peg_df) == 0:
+                print('No pegRNAs passed the OptiPrime cutoff; try lowering '
+                      'optiprime_cutoff.')
+                return peg_df
+
     #and then do the ranking
     uniq_muts = np.unique(peg_df['mutation_idx'])
     for mm in uniq_muts:
@@ -1908,6 +1989,14 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
             peg_df = peg_df[peg_df['pegRNA_rank_within_group']<=pegRNAs_per_mut]
         else:
             peg_df = peg_df[peg_df['pegRNA_rank']<=pegRNAs_per_mut]
+
+        #The within-group filter above keeps up to pegRNAs_per_mut of EACH design
+        #type, so with bystanders on a mutation can come back with more than
+        #pegRNAs_per_mut rows in total. Cap the total as well, by overall rank,
+        #so pegRNAs_per_mut is an upper bound on what any one mutation
+        #contributes. Ranking already ran within each type, so both design types
+        #still get their fair shot at the top of the pool.
+        peg_df = peg_df[peg_df['pegRNA_rank']<=pegRNAs_per_mut]
 
     #create sensor if desired
     if sensor == True:
