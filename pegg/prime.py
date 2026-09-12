@@ -1579,7 +1579,8 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         seed=None,
         optiprime=False, optiprime_cutoff=None,
         optiprime_group=_optiprime.DEFAULT_GROUP,
-        optiprime_src=None, optiprime_python=None):
+        optiprime_src=None, optiprime_python=None,
+        cap_total_per_mut=True):
 
     """ 
     Master function for generating pegRNAs. Takes as input a dataframe containing mutations in one of the acceptable formats.
@@ -1784,6 +1785,19 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         needs Python 3.11 and its own jax stack, which cannot coexist with
         pegg's pinned environment, so it runs in a subprocess. Falls back to the
         OPTIPRIME_PYTHON environment variable.
+
+    cap_total_per_mut
+        *type = bool*
+
+        Whether pegRNAs_per_mut also bounds the TOTAL number of pegRNAs per
+        mutation. Only has an effect when silent_bystander is True, where the
+        limit is otherwise applied to each design type separately and a mutation
+        can return up to twice pegRNAs_per_mut rows. Default = True.
+
+        The budget is split between plain and bystander designs rather than
+        taken by overall rank, so that neither type can crowd the other out of
+        the library entirely. Set False for the pre-existing behaviour of
+        pegRNAs_per_mut designs of each type.
     """
 
 
@@ -1991,12 +2005,52 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
             peg_df = peg_df[peg_df['pegRNA_rank']<=pegRNAs_per_mut]
 
         #The within-group filter above keeps up to pegRNAs_per_mut of EACH design
-        #type, so with bystanders on a mutation can come back with more than
-        #pegRNAs_per_mut rows in total. Cap the total as well, by overall rank,
-        #so pegRNAs_per_mut is an upper bound on what any one mutation
-        #contributes. Ranking already ran within each type, so both design types
-        #still get their fair shot at the top of the pool.
-        peg_df = peg_df[peg_df['pegRNA_rank']<=pegRNAs_per_mut]
+        #type, so with bystanders on a mutation can come back with up to twice
+        #pegRNAs_per_mut rows in total. Cap the total as well, when the caller
+        #asked for a hard limit, so pegRNAs_per_mut bounds what any one mutation
+        #contributes.
+        #
+        #Deliberately NOT capped on overall rank: the two design types do not
+        #score on a common scale (a bystander can knock out the PAM and shift
+        #RTT_GC_content, both of which carry positive weight), so one type can
+        #sweep the top of the pool. Cutting on overall rank then drops whole
+        #mutations whose surviving designs happen to be of the crowded-out type.
+        #Take a proportional share of each type instead, keeping each type's own
+        #best, so every mutation that had designs still has designs.
+        if silent_bystander and cap_total_per_mut:
+            keep_idx = []
+            for mm in np.unique(peg_df['mutation_idx']):
+                sub = peg_df[peg_df['mutation_idx']==mm]
+                if len(sub) <= pegRNAs_per_mut:
+                    keep_idx.extend(sub.index)
+                    continue
+                groups = [sub[sub['has_silent_bystander']==flag]
+                          .sort_values(by='pegRNA_rank_within_group')
+                          for flag in [False, True]]
+                groups = [g for g in groups if len(g)]
+                #share the budget out, giving any remainder to the larger group
+                base = pegRNAs_per_mut // len(groups)
+                extra = pegRNAs_per_mut - base*len(groups)
+                order = sorted(range(len(groups)), key=lambda i: -len(groups[i]))
+                quota = [base]*len(groups)
+                for i in order[:extra]:
+                    quota[i] += 1
+                #a group with fewer designs than its quota releases the slack
+                for _ in range(len(groups)):
+                    spare = sum(max(0, q-len(g)) for q, g in zip(quota, groups))
+                    if not spare:
+                        break
+                    quota = [min(q, len(g)) for q, g in zip(quota, groups)]
+                    for i in order:
+                        room = len(groups[i]) - quota[i]
+                        take = min(room, spare)
+                        quota[i] += take
+                        spare -= take
+                        if not spare:
+                            break
+                for q, g in zip(quota, groups):
+                    keep_idx.extend(g.index[:q])
+            peg_df = peg_df.loc[sorted(keep_idx)]
 
     #create sensor if desired
     if sensor == True:

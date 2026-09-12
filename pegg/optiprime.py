@@ -242,6 +242,7 @@ from functools import partial
 from pathlib import Path
 
 import jax
+from jax import jit, vmap
 import jax.numpy as jnp
 from jax.random import PRNGKey
 import numpy as np
@@ -324,10 +325,14 @@ def main():
                              num_groups=len(ds.groups))
         model = RxModel(rx_graph=rx_graph, rx_module=rx_module, models=rate_models)
         model.init_rates()
-        apply_fn = jax.pmap(partial(model.full_apply, rngs=None, deterministic=True),
-                            in_axes=(None, None, 0, 0, 0, 0, 0, 0))
+        #jit(vmap(...)) rather than pmap: pmap maps over DEVICES, so on a CPU
+        #box it scores one pegRNA per forward pass. vmap batches within the one
+        #device, which is what PREDICT_PE.py does and is orders of magnitude
+        #faster for library-scale input.
+        apply_fn = jit(vmap(partial(model.full_apply, rngs=None, deterministic=True),
+                            in_axes=(None, None, 0, 0, 0, 0, 0, 0)))
 
-        bs = jax.device_count()
+        bs = int(cfg.get('batch_size') or 256)
         full_rate_idxs = get_param_idxs(rx_graph, ds)
         rtt_lens_all = ds.df['rtt'].str.len().values
         gidx_all = ds.df['group_idx'].to_numpy(dtype=np.uint32)
@@ -368,7 +373,8 @@ main()
 
 
 def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
-          graph_rx=None, group=DEFAULT_GROUP, time=4.0, quiet=True):
+          graph_rx=None, group=DEFAULT_GROUP, time=4.0, batch_size=256,
+          quiet=True):
     """
     Scores pegRNAs with OptiPrime, returning df with an OptiPrime_Score column.
 
@@ -419,6 +425,13 @@ def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
         *type = float*
 
         Experiment duration passed to the model. Default = 4.0, as DESIGN_PE.py.
+
+    batch_size
+        *type = int*
+
+        pegRNAs per forward pass. Default = 256. Larger is faster but uses more
+        memory; the model pads every sequence to the longest in the whole input,
+        so memory also grows with the longest RTT.
 
     quiet
         *type = bool*
@@ -483,7 +496,8 @@ def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
         with open(cfg_path, 'w') as f:
             json.dump({'in_csv': in_csv, 'out_csv': out_csv,
                        'weight_dirs': list(weight_dirs), 'graph_rx': graph_rx,
-                       'group': group, 'time': float(time)}, f)
+                       'group': group, 'time': float(time),
+                       'batch_size': int(batch_size)}, f)
 
         env = dict(os.environ)
         env['PYTHONPATH'] = src + os.pathsep + env.get('PYTHONPATH', '')
