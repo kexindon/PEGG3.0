@@ -61,6 +61,10 @@ VALID_GROUPS = (
 #HeLa, MMR-proficient -- OptiPrime's default, see module docstring.
 DEFAULT_GROUP = 'Liu_HeLa'
 
+#Each worker process pays a fixed startup cost (import jax, build the model, JIT)
+#of roughly 20 s, so there is no point splitting the input below this.
+_MIN_SHARD = 500
+
 
 class OptiPrimeError(RuntimeError):
     """Raised when OptiPrime is unavailable or fails to produce scores."""
@@ -389,7 +393,7 @@ main()
 
 def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
           graph_rx=None, group=DEFAULT_GROUP, time=4.0, batch_size=256,
-          quiet=True):
+          n_jobs=None, quiet=True):
     """
     Scores pegRNAs with OptiPrime, returning df with an OptiPrime_Score column.
 
@@ -448,6 +452,19 @@ def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
         memory; the model pads every sequence to the longest in the whole input,
         so memory also grows with the longest RTT.
 
+    n_jobs
+        *type = int or None*
+
+        How many worker processes to split the input across. Default = None,
+        meaning one per CPU less one. Each worker pays ~20 s of startup, so the
+        input is not split into shards smaller than _MIN_SHARD rows regardless.
+
+        Separate processes rather than threads or a pool: featurization is
+        single-threaded, and ViennaRNA's energy parameters are process-global
+        state that the inputs mutate, so sharing an interpreter makes scores
+        depend on scheduling. Sharding across processes is deterministic --
+        agreement with single-process scoring is ~5e-7, i.e. float32 rounding.
+
     quiet
         *type = bool*
 
@@ -499,42 +516,76 @@ def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
     #though RxDataset reindexes
     in_df['row_id'] = keep
 
-    with tempfile.TemporaryDirectory(prefix='pegg_optiprime_') as td:
-        in_csv = os.path.join(td, 'in.csv')
-        out_csv = os.path.join(td, 'out.csv')
-        cfg_path = os.path.join(td, 'cfg.json')
-        worker = os.path.join(td, 'worker.py')
+    #Featurization is the bulk of the cost and is single-threaded, so split the
+    #input across several worker processes. Separate processes rather than a
+    #pool inside one: ViennaRNA's energy parameters are process-global and the
+    #inputs mutate them (see the note above _WORKER), so sharing an interpreter
+    #makes scores depend on scheduling. A fresh process per shard gets its own
+    #copy of that state and stays deterministic -- measured against scoring the
+    #whole set in one process, sharding agrees to 5e-7 (float32 rounding from
+    #batch padding), versus 0.06 for a forked pool.
+    if n_jobs is None or n_jobs <= 0:
+        n_jobs = max(1, (os.cpu_count() or 2) - 1)
+    #each worker loads the model and JIT-compiles, which is a fixed ~20 s, so
+    #do not shard so finely that the overhead dominates
+    n_jobs = max(1, min(int(n_jobs), (len(in_df) + _MIN_SHARD - 1) // _MIN_SHARD))
 
-        in_df.to_csv(in_csv, index=False)
+    with tempfile.TemporaryDirectory(prefix='pegg_optiprime_') as td:
+        worker = os.path.join(td, 'worker.py')
         with open(worker, 'w') as f:
             f.write(_WORKER)
-        with open(cfg_path, 'w') as f:
-            json.dump({'in_csv': in_csv, 'out_csv': out_csv,
-                       'weight_dirs': list(weight_dirs), 'graph_rx': graph_rx,
-                       'group': group, 'time': float(time),
-                       'batch_size': int(batch_size)}, f)
 
         env = dict(os.environ)
         env['PYTHONPATH'] = src + os.pathsep + env.get('PYTHONPATH', '')
-        #OptiPrime is CPU-bound here and JAX otherwise grabs every core per
-        #process; leave the default unless the caller has set it.
+        #JAX would otherwise grab every core in each worker, which oversubscribes
+        #the machine once several are running; keep each to one thread and get
+        #the parallelism from the shards instead.
         env.setdefault('JAX_PLATFORMS', 'cpu')
+        if n_jobs > 1:
+            env.setdefault('XLA_FLAGS', '--xla_force_host_platform_device_count=1')
+            for var in ('OMP_NUM_THREADS', 'MKL_NUM_THREADS',
+                        'OPENBLAS_NUM_THREADS', 'NUMEXPR_NUM_THREADS'):
+                env.setdefault(var, '1')
 
-        proc = subprocess.run(
-            [py, worker, cfg_path], cwd=src, env=env,
-            stdout=subprocess.DEVNULL if quiet else None,
-            stderr=subprocess.PIPE if quiet else None)
+        procs = []
+        out_paths = []
+        for k in range(n_jobs):
+            shard = in_df.iloc[k::n_jobs]
+            if not len(shard):
+                continue
+            in_csv = os.path.join(td, 'in_%d.csv' % k)
+            out_csv = os.path.join(td, 'out_%d.csv' % k)
+            cfg_path = os.path.join(td, 'cfg_%d.json' % k)
+            shard.to_csv(in_csv, index=False)
+            with open(cfg_path, 'w') as f:
+                json.dump({'in_csv': in_csv, 'out_csv': out_csv,
+                           'weight_dirs': list(weight_dirs), 'graph_rx': graph_rx,
+                           'group': group, 'time': float(time),
+                           'batch_size': int(batch_size)}, f)
+            procs.append(subprocess.Popen(
+                [py, worker, cfg_path], cwd=src, env=env,
+                stdout=subprocess.DEVNULL if quiet else None,
+                stderr=subprocess.PIPE if quiet else None))
+            out_paths.append(out_csv)
 
-        if proc.returncode != 0:
-            msg = (proc.stderr or b'').decode('utf-8', 'replace')
+        failures = []
+        for p in procs:
+            _, err = p.communicate()
+            if p.returncode != 0:
+                failures.append((p.returncode, (err or b'').decode('utf-8', 'replace')))
+
+        if failures:
+            code, msg = failures[0]
             raise OptiPrimeError(
-                'OptiPrime scoring failed (exit %d).\n%s'
-                % (proc.returncode, msg[-4000:]))
+                'OptiPrime scoring failed (%d of %d workers; first exit %d).\n%s'
+                % (len(failures), len(procs), code, msg[-4000:]))
 
-        if not os.path.isfile(out_csv):
-            raise OptiPrimeError('OptiPrime produced no output')
+        missing = [p for p in out_paths if not os.path.isfile(p)]
+        if missing:
+            raise OptiPrimeError('OptiPrime produced no output for %d of %d shards'
+                                 % (len(missing), len(out_paths)))
 
-        scored = pd.read_csv(out_csv)
+        scored = pd.concat([pd.read_csv(p) for p in out_paths], ignore_index=True)
 
     idx = out.index[scored['row_id'].to_numpy()]
     out.loc[idx, 'OptiPrime_Score'] = scored['OptiPrime_Score'].to_numpy()

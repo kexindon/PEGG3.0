@@ -1580,7 +1580,7 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         optiprime=False, optiprime_cutoff=None,
         optiprime_group=_optiprime.DEFAULT_GROUP,
         optiprime_src=None, optiprime_python=None,
-        optiprime_prefilter=4, cap_total_per_mut=True):
+        optiprime_prefilter=4, optiprime_jobs=None, cap_total_per_mut=True):
 
     """ 
     Master function for generating pegRNAs. Takes as input a dataframe containing mutations in one of the acceptable formats.
@@ -1805,6 +1805,14 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         dependence on PEGG2_Score. pegRNAs outside the shortlist are dropped
         from the output, since they carry no OptiPrime_Score to rank on.
 
+    optiprime_jobs
+        *type = int or None*
+
+        How many worker processes OptiPrime scoring is split across. Default =
+        None, meaning one per CPU less one. Scoring is the slow part of a run
+        with optiprime=True, and each shard is a separate process, so this is
+        close to a linear speed-up until the machine runs out of cores.
+
     cap_total_per_mut
         *type = bool*
 
@@ -2004,7 +2012,8 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         peg_df = _optiprime.score(to_score,
                                   optiprime_src=optiprime_src,
                                   optiprime_python=optiprime_python,
-                                  group=optiprime_group)
+                                  group=optiprime_group,
+                                  n_jobs=optiprime_jobs)
 
         if optiprime_cutoff is not None:
             n_before = len(peg_df)
