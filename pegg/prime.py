@@ -1580,7 +1580,7 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         optiprime=False, optiprime_cutoff=None,
         optiprime_group=_optiprime.DEFAULT_GROUP,
         optiprime_src=None, optiprime_python=None,
-        cap_total_per_mut=True):
+        optiprime_prefilter=4, cap_total_per_mut=True):
 
     """ 
     Master function for generating pegRNAs. Takes as input a dataframe containing mutations in one of the acceptable formats.
@@ -1786,6 +1786,25 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         pegg's pinned environment, so it runs in a subprocess. Falls back to the
         OPTIPRIME_PYTHON environment variable.
 
+    optiprime_prefilter
+        *type = int or None*
+
+        Score only the top pegRNAs_per_mut x optiprime_prefilter pegRNAs per
+        mutation (and per design type, when silent_bystander is True), chosen by
+        PEGG2_Score, rather than every candidate. Default = 4. Has no effect when
+        pegRNAs_per_mut='All'.
+
+        OptiPrime costs roughly 0.1 s per pegRNA, most of it featurization, so on
+        a library this dominates the run: a mutation typically yields hundreds of
+        candidates but only pegRNAs_per_mut can be returned. The multiple is
+        deliberately generous because the two scores disagree -- which is the
+        reason to use OptiPrime in the first place -- so the shortlist needs to
+        be much larger than the final selection.
+
+        Set to None to score every pegRNA, which is slower but removes any
+        dependence on PEGG2_Score. pegRNAs outside the shortlist are dropped
+        from the output, since they carry no OptiPrime_Score to rank on.
+
     cap_total_per_mut
         *type = bool*
 
@@ -1947,7 +1966,42 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
     #on. Scored in HeLa (MMR-proficient) parameters, OptiPrime's own default and
     #what its authors recommend for general use; see pegg.optiprime.
     if optiprime or (rankby == 'OptiPrime_Score') or (optiprime_cutoff is not None):
-        peg_df = _optiprime.score(peg_df,
+
+        #OptiPrime costs ~0.1 s per pegRNA, most of it featurization, so scoring
+        #every candidate is the dominant cost of a library run -- a few hundred
+        #variants generate hundreds of thousands of pegRNAs. Only a bounded
+        #number per mutation can ever be returned, so shortlist with the cheap
+        #score first and spend OptiPrime on those.
+        #
+        #The shortlist is deliberately generous (optiprime_prefilter multiples of
+        #what can be returned, per design type) because the two scores disagree
+        #-- that disagreement is the point of using OptiPrime at all. Set
+        #optiprime_prefilter=None to score every pegRNA.
+        to_score = peg_df
+        prefiltered = False
+        if (optiprime_prefilter is not None
+                and pegRNAs_per_mut not in ['All', 'all', ' All', ' all', 'all ', 'All ']):
+            n_keep = int(pegRNAs_per_mut) * int(optiprime_prefilter)
+            group_cols = ['mutation_idx']
+            if silent_bystander:
+                group_cols.append('has_silent_bystander')
+            #rank on the cheap score within each mutation (and design type), then
+            #keep the top n_keep of each
+            shortlist = (peg_df.sort_values(by='PEGG2_Score', ascending=False)
+                               .groupby(group_cols, sort=False)
+                               .head(n_keep))
+            if len(shortlist) < len(peg_df):
+                to_score = shortlist
+                prefiltered = True
+                print('OptiPrime: scoring %d/%d pegRNAs (top %d per mutation%s '
+                      'by PEGG2_Score; set optiprime_prefilter=None to score all)'
+                      % (len(to_score), len(peg_df), n_keep,
+                         ' and design type' if silent_bystander else ''))
+
+        #pegRNAs outside the shortlist are dropped rather than carried unscored:
+        #they cannot be ranked on OptiPrime_Score, and an unscored pegRNA must
+        #not outrank one that was scored and found wanting.
+        peg_df = _optiprime.score(to_score,
                                   optiprime_src=optiprime_src,
                                   optiprime_python=optiprime_python,
                                   group=optiprime_group)
