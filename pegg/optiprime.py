@@ -241,6 +241,21 @@ import json, sys, tempfile
 from functools import partial
 from pathlib import Path
 
+#Featurization is ~95% ViennaRNA partition-function folding: ScaffoldDefect
+#folds the whole ~140 nt pegRNA five times per row. That is GIL-releasing C
+#code, and RxDataset can pool it (multiprocess=True, which needs the 'fork'
+#start method -- its worker looks up RxInput._instances, a registry populated by
+#import side effects, so 'spawn' children start empty and raise KeyError).
+#
+#It is NOT used, deliberately. ViennaRNA's energy parameters are process-global
+#and the inputs mutate them: HetBPP.pre_process() switches to DNA_Mathews2004
+#and restores RNA_Turner2004 afterwards. Run serially, ScaffoldDefect (which is
+#ordered before HetBPP) always folds under the RNA parameters; forked workers
+#inherit whichever set was live when they were spawned, so the same pegRNA gets
+#a different score depending on scheduling. Measured on 400 pegRNAs: max
+#|difference| 0.057, and no row agreed to 1e-6. A 2.2x speedup is not worth
+#scores that change between runs.
+
 import jax
 from jax import jit, vmap
 import jax.numpy as jnp
@@ -295,8 +310,8 @@ def main():
         return d
 
     with tempfile.TemporaryDirectory() as td:
-        #multiprocess=False: the worker pool re-imports __main__ in spawned
-        #children, which loses the RxInput registry and raises KeyError.
+        #multiprocess=False: see the note above -- parallel featurization races
+        #on ViennaRNA's global energy parameters and changes the scores.
         ds = RxDataset(df=df.copy(), rate_plates=rx_graph.plate_names,
                        observables=rx_graph.obs_names,
                        json_path=Path(td) / 'ds.json',
