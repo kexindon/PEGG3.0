@@ -537,6 +537,12 @@ def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
 
         env = dict(os.environ)
         env['PYTHONPATH'] = src + os.pathsep + env.get('PYTHONPATH', '')
+        #Under Jupyter, MPLBACKEND is set to matplotlib_inline's backend, which
+        #only exists in the notebook's own environment. rs3 imports lightgbm,
+        #which imports matplotlib, so the worker dies on an unknown backend
+        #before it scores anything. Force a backend that is always available --
+        #nothing here draws.
+        env['MPLBACKEND'] = 'Agg'
         #JAX would otherwise grab every core in each worker, which oversubscribes
         #the machine once several are running; keep each to one thread and get
         #the parallelism from the shards instead.
