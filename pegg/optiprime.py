@@ -109,11 +109,13 @@ def _rc(seq):
 
 def _rows_from_pegdf(df):
     """
-    Builds OptiPrime's five input columns from pegg's pegRNA table.
+    Builds OptiPrime's five input columns from pegg's pegRNA table, plus the
+    proto30 the model would otherwise derive for itself.
 
     Returns (rows, errors), each a list the same length as df. rows[i] is None
     where the pegRNA could not be expressed in OptiPrime's coordinates, with the
-    reason in errors[i].
+    reason in errors[i]. Each row is
+    (spacer, rtt, pbs, full_unedited, full_edited, proto30).
 
     Geometry. pegg stores, per pegRNA, the PAM-strand sequence implicitly via
     Protospacer_30 = seq_F[PAM_start-24 : PAM_start+6], so its first 24 nt are
@@ -125,7 +127,9 @@ def _rows_from_pegdf(df):
     full_unedited/full_edited are the PAM-strand target either side of the edit.
     They are truncated to 25+RTT_length as DESIGN_PE.py does, because that sets
     hom_len, which feeds the MMR model; passing the full context changes the
-    score.
+    score. That truncation is also why proto30 is sent explicitly: it makes
+    full_unedited shorter than 30 nt on short-RTT insertions, which breaks the
+    derivation format_pe_df would otherwise use (see below).
     """
     rows = []
     errors = []
@@ -230,9 +234,24 @@ def _rows_from_pegdf(df):
             errors.append('edited and unedited sequences identical')
             continue
 
+        #format_pe_df derives proto30 as full_unedited[:30] and then asserts it
+        #is exactly 30 nt. full_unedited is truncated to 25+RTT_length, so on an
+        #insertion it is SHORTER than full_edited by the inserted length, and a
+        #short RTT drops it below 30 -- e.g. a 3 nt insertion with a 5 nt RTT
+        #gives 27. That assertion fires inside the worker and kills the whole
+        #shard, losing every pegRNA in it rather than just the offending row.
+        #pegg already has the exact 30-mer the model wants, so pass it through
+        #explicitly and let format_pe_df skip the derivation entirely.
+        if len(proto30) != 30:
+            #only reachable when the context runs out at a contig edge; caught
+            #here so one malformed row cannot take a shard down with it.
+            rows.append(None)
+            errors.append('Protospacer_30 is %d nt, not 30' % len(proto30))
+            continue
+
         #OptiPrime works in RNA; format_pe_df does T->U itself, so DNA is fine.
         rows.append((proto30[PS20_OFFSET:PS20_OFFSET + 20], rtt, pbs,
-                     unedited, edited))
+                     unedited, edited, proto30))
         errors.append(None)
 
     return rows, errors
@@ -470,6 +489,16 @@ def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
 
         Suppress OptiPrime's own stdout/stderr. Default = True.
     """
+    #before the install checks: a mistyped group is a caller error either way,
+    #and reporting the missing install instead would hide it until OptiPrime is
+    #set up -- by which point the name silently scores as 0 (see below).
+    if group not in VALID_GROUPS:
+        raise OptiPrimeError(
+            "unknown OptiPrime group %r. The released weights only carry group "
+            "factors for: %s. An unrecognised name is not rejected by OptiPrime "
+            "itself -- it silently scores with a zeroed group factor -- so it is "
+            "checked here instead." % (group, ', '.join(VALID_GROUPS)))
+
     src = _env_or(optiprime_src, 'OPTIPRIME_SRC')
     py = _env_or(optiprime_python, 'OPTIPRIME_PYTHON')
 
@@ -481,13 +510,6 @@ def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
             'interpreter with its requirements installed.')
     if not os.path.isdir(src):
         raise OptiPrimeError('OptiPrime source not found at %s' % src)
-
-    if group not in VALID_GROUPS:
-        raise OptiPrimeError(
-            "unknown OptiPrime group %r. The released weights only carry group "
-            "factors for: %s. An unrecognised name is not rejected by OptiPrime "
-            "itself -- it silently scores with a zeroed group factor -- so it is "
-            "checked here instead." % (group, ', '.join(VALID_GROUPS)))
 
     if weight_dirs is None:
         wroot = os.path.join(src, 'weights')
@@ -511,7 +533,8 @@ def score(df, optiprime_src=None, optiprime_python=None, weight_dirs=None,
 
     in_df = pd.DataFrame(
         [rows[i] for i in keep],
-        columns=['spacer', 'rtt', 'pbs', 'full_unedited', 'full_edited'])
+        columns=['spacer', 'rtt', 'pbs', 'full_unedited', 'full_edited',
+                 'proto30'])
     #carried through the model so scores can be mapped back to pegg's rows even
     #though RxDataset reindexes
     in_df['row_id'] = keep

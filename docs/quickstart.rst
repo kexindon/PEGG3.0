@@ -307,6 +307,54 @@ matters biologically and what the scoring functions read. With ``silent_bystande
 ``PAM_disrupted_edit``, so nothing changes for existing pipelines. Likewise, when ``pegRNAs_per_mut`` is set the limit
 applies to each design type separately, so a mutation always keeps both.
 
+OptiPrime Scoring
+*******************
+
+New in version 3.1. PEGG can rank pegRNAs with `OptiPrime <https://github.com/alvin-hsu/optiprime-src>`_
+(Hsu et al., Nature Biotechnology 2026) rather than its own ``PEGG2_Score``.
+
+**We recommend OptiPrime for library design.** ``PEGG2_Score`` is a hand-weighted combination of design features;
+OptiPrime is a model trained on large-scale measured editing outcomes that explicitly accounts for mismatch repair.
+The only cost is runtime, and it is bounded -- see :doc:`optiprime` for measured numbers and how to control it.
+
+OptiPrime is optional and installs separately: it needs JAX, which cannot coexist with PEGG's ``numpy<2`` pin, so
+PEGG runs it in a subprocess against its own interpreter. The :doc:`optiprime` page has the full install recipe.
+
+Once installed, point PEGG at it and switch it on:
+
+.. code-block:: python
+
+   import os
+   os.environ['OPTIPRIME_SRC']    = os.path.expanduser('~/optiprime/src')
+   os.environ['OPTIPRIME_PYTHON'] = os.path.expanduser('~/optiprime/env/bin/python')
+
+   from pegg import prime, optiprime
+
+   assert optiprime.optiprime_available()
+
+   pegRNAs = prime.run(
+       mutations, 'PrimeDesign', None,
+       pegRNAs_per_mut=10,
+       optiprime=True,
+       optiprime_group='Liu_HeLa',     # MMR-proficient -- the conservative default
+       rankby='OptiPrime_Score',
+   )
+
+This adds ``OptiPrime_Score`` (predicted efficiency, higher is better) and ``OptiPrime_error`` (why a pegRNA was not
+scored, or ``NaN``). Scoring never fails silently.
+
+Two things to know before using it:
+
+- **The cell line encodes MMR status, not a tuning parameter.** The same pegRNA can score 0.174 under ``Liu_HeLa``
+  and 0.407 under ``Liu_HEK293T``. Design on ``Liu_HeLa`` (MMR-proficient, the default) unless you have a reason
+  not to: those designs transfer to MMR-deficient lines, but not the other way round.
+
+- **Scoring happens before downstream polyT/sensor filtering.** A mutation with 10 pegRNAs when ``run()`` returns
+  can have none after those filters. Check coverage after filtering.
+
+See :doc:`optiprime` for the install recipe, the twelve valid cell-line names, runtime estimates, and a complete
+worked example.
+
 Base Editing
 **************
 
