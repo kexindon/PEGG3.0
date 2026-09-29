@@ -20,6 +20,7 @@ from cyvcf2 import VCF
 from importlib.resources import files
 
 from . import crispor_azimuth #python script included in directory; from CRISPOR website github with modifications
+from . import optiprime as _optiprime
 
 warnings.filterwarnings('ignore')
 
@@ -1575,7 +1576,11 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
         before_proto_context=5, sensor_length=60, sensor_orientation = 'reverse-complement', sensor=True,
         silent_bystander=False, silent_per_mut=2, ORF_start=None,
         bystander_window_nt=5, max_bystander_muts=2, splice_buffer=3,
-        seed=None):
+        seed=None,
+        optiprime=False, optiprime_cutoff=None,
+        optiprime_group=_optiprime.DEFAULT_GROUP,
+        optiprime_src=None, optiprime_python=None,
+        optiprime_prefilter=4, optiprime_jobs=None, cap_total_per_mut=True):
 
     """ 
     Master function for generating pegRNAs. Takes as input a dataframe containing mutations in one of the acceptable formats.
@@ -1729,6 +1734,97 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
 
         Seed for the random selection of bystander designs. Pass an integer to
         make a library reproducible. Default = None (different each run).
+
+    optiprime
+        *type = bool*
+
+        True/False whether to score pegRNAs with OptiPrime, adding an
+        OptiPrime_Score column. Default = False. Implied by setting
+        rankby='OptiPrime_Score' or optiprime_cutoff.
+
+        Unlike PEGG2_Score and RF_Score, the OptiPrime score is on an absolute
+        scale: it is the predicted fraction of alleles carrying the intended
+        edit, so 0.2 means ~20% editing.
+
+        Requires a separate OptiPrime installation; see pegg.optiprime and the
+        optiprime_src/optiprime_python parameters.
+
+    optiprime_cutoff
+        *type = float or None*
+
+        Drop pegRNAs whose predicted editing efficiency is below this, e.g. 0.2
+        to keep only pegRNAs predicted above 20%. Default = None (no filtering).
+
+        Applied before ranking and before pegRNAs_per_mut, so the per-mutation
+        limit is filled from the pegRNAs that passed. A mutation with nothing
+        above the cutoff drops out of the output entirely, so check the returned
+        set covers every intended mutation before ordering a library.
+
+    optiprime_group
+        *type = str*
+
+        Which training group's parameters to score against, as <lab>_<cell
+        line>. Default = 'Liu_HeLa'.
+
+        This is how MMR status enters the model, and HeLa is MMR-proficient.
+        OptiPrime's authors recommend the default for general use: pegRNAs
+        optimized on HeLa parameters tend to hold up in HEK293T, but not the
+        reverse, and all of the paper's primary-cell and in vivo validations
+        used it. Prefer the default even when working in another cell type.
+
+    optiprime_src
+        *type = str or None*
+
+        Path to a clone of github.com/alvin-hsu/optiprime-src. Falls back to the
+        OPTIPRIME_SRC environment variable.
+
+    optiprime_python
+        *type = str or None*
+
+        Python interpreter with OptiPrime's dependencies installed. OptiPrime
+        needs Python 3.11 and its own jax stack, which cannot coexist with
+        pegg's pinned environment, so it runs in a subprocess. Falls back to the
+        OPTIPRIME_PYTHON environment variable.
+
+    optiprime_prefilter
+        *type = int or None*
+
+        Score only the top pegRNAs_per_mut x optiprime_prefilter pegRNAs per
+        mutation (and per design type, when silent_bystander is True), chosen by
+        PEGG2_Score, rather than every candidate. Default = 4. Has no effect when
+        pegRNAs_per_mut='All'.
+
+        OptiPrime costs roughly 0.1 s per pegRNA, most of it featurization, so on
+        a library this dominates the run: a mutation typically yields hundreds of
+        candidates but only pegRNAs_per_mut can be returned. The multiple is
+        deliberately generous because the two scores disagree -- which is the
+        reason to use OptiPrime in the first place -- so the shortlist needs to
+        be much larger than the final selection.
+
+        Set to None to score every pegRNA, which is slower but removes any
+        dependence on PEGG2_Score. pegRNAs outside the shortlist are dropped
+        from the output, since they carry no OptiPrime_Score to rank on.
+
+    optiprime_jobs
+        *type = int or None*
+
+        How many worker processes OptiPrime scoring is split across. Default =
+        None, meaning one per CPU less one. Scoring is the slow part of a run
+        with optiprime=True, and each shard is a separate process, so this is
+        close to a linear speed-up until the machine runs out of cores.
+
+    cap_total_per_mut
+        *type = bool*
+
+        Whether pegRNAs_per_mut also bounds the TOTAL number of pegRNAs per
+        mutation. Only has an effect when silent_bystander is True, where the
+        limit is otherwise applied to each design type separately and a mutation
+        can return up to twice pegRNAs_per_mut rows. Default = True.
+
+        The budget is split between plain and bystander designs rather than
+        taken by overall rank, so that neither type can crowd the other out of
+        the library entirely. Set False for the pre-existing behaviour of
+        pegRNAs_per_mut designs of each type.
     """
 
 
@@ -1873,6 +1969,68 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
     #and calculate the RF score
     peg_df = RF_score(peg_df)
 
+    #--- OptiPrime scoring ----------------------------------------------------
+    #Run before ranking, so that rankby='OptiPrime_Score' has something to sort
+    #on. Scored in HeLa (MMR-proficient) parameters, OptiPrime's own default and
+    #what its authors recommend for general use; see pegg.optiprime.
+    if optiprime or (rankby == 'OptiPrime_Score') or (optiprime_cutoff is not None):
+
+        #OptiPrime costs ~0.1 s per pegRNA, most of it featurization, so scoring
+        #every candidate is the dominant cost of a library run -- a few hundred
+        #variants generate hundreds of thousands of pegRNAs. Only a bounded
+        #number per mutation can ever be returned, so shortlist with the cheap
+        #score first and spend OptiPrime on those.
+        #
+        #The shortlist is deliberately generous (optiprime_prefilter multiples of
+        #what can be returned, per design type) because the two scores disagree
+        #-- that disagreement is the point of using OptiPrime at all. Set
+        #optiprime_prefilter=None to score every pegRNA.
+        to_score = peg_df
+        prefiltered = False
+        if (optiprime_prefilter is not None
+                and pegRNAs_per_mut not in ['All', 'all', ' All', ' all', 'all ', 'All ']):
+            n_keep = int(pegRNAs_per_mut) * int(optiprime_prefilter)
+            group_cols = ['mutation_idx']
+            if silent_bystander:
+                group_cols.append('has_silent_bystander')
+            #rank on the cheap score within each mutation (and design type), then
+            #keep the top n_keep of each
+            shortlist = (peg_df.sort_values(by='PEGG2_Score', ascending=False)
+                               .groupby(group_cols, sort=False)
+                               .head(n_keep))
+            if len(shortlist) < len(peg_df):
+                to_score = shortlist
+                prefiltered = True
+                print('OptiPrime: scoring %d/%d pegRNAs (top %d per mutation%s '
+                      'by PEGG2_Score; set optiprime_prefilter=None to score all)'
+                      % (len(to_score), len(peg_df), n_keep,
+                         ' and design type' if silent_bystander else ''))
+
+        #pegRNAs outside the shortlist are dropped rather than carried unscored:
+        #they cannot be ranked on OptiPrime_Score, and an unscored pegRNA must
+        #not outrank one that was scored and found wanting.
+        peg_df = _optiprime.score(to_score,
+                                  optiprime_src=optiprime_src,
+                                  optiprime_python=optiprime_python,
+                                  group=optiprime_group,
+                                  n_jobs=optiprime_jobs)
+
+        if optiprime_cutoff is not None:
+            n_before = len(peg_df)
+            #An unscored pegRNA has no evidence of clearing the cutoff, so it is
+            #dropped rather than kept: a cutoff is a promise about what is in the
+            #output. The count is reported so a systematic failure to score is
+            #visible rather than silently shrinking the library.
+            n_unscored = int(peg_df['OptiPrime_Score'].isna().sum())
+            peg_df = peg_df[peg_df['OptiPrime_Score'] >= optiprime_cutoff]
+            print('OptiPrime cutoff %.3g: kept %d/%d pegRNAs (%d were unscored)'
+                  % (optiprime_cutoff, len(peg_df), n_before, n_unscored))
+
+            if len(peg_df) == 0:
+                print('No pegRNAs passed the OptiPrime cutoff; try lowering '
+                      'optiprime_cutoff.')
+                return peg_df
+
     #and then do the ranking
     uniq_muts = np.unique(peg_df['mutation_idx'])
     for mm in uniq_muts:
@@ -1908,6 +2066,54 @@ def run(input_df, input_format, chrom_dict=None, PAM = "NGG", rankby = 'PEGG2_Sc
             peg_df = peg_df[peg_df['pegRNA_rank_within_group']<=pegRNAs_per_mut]
         else:
             peg_df = peg_df[peg_df['pegRNA_rank']<=pegRNAs_per_mut]
+
+        #The within-group filter above keeps up to pegRNAs_per_mut of EACH design
+        #type, so with bystanders on a mutation can come back with up to twice
+        #pegRNAs_per_mut rows in total. Cap the total as well, when the caller
+        #asked for a hard limit, so pegRNAs_per_mut bounds what any one mutation
+        #contributes.
+        #
+        #Deliberately NOT capped on overall rank: the two design types do not
+        #score on a common scale (a bystander can knock out the PAM and shift
+        #RTT_GC_content, both of which carry positive weight), so one type can
+        #sweep the top of the pool. Cutting on overall rank then drops whole
+        #mutations whose surviving designs happen to be of the crowded-out type.
+        #Take a proportional share of each type instead, keeping each type's own
+        #best, so every mutation that had designs still has designs.
+        if silent_bystander and cap_total_per_mut:
+            keep_idx = []
+            for mm in np.unique(peg_df['mutation_idx']):
+                sub = peg_df[peg_df['mutation_idx']==mm]
+                if len(sub) <= pegRNAs_per_mut:
+                    keep_idx.extend(sub.index)
+                    continue
+                groups = [sub[sub['has_silent_bystander']==flag]
+                          .sort_values(by='pegRNA_rank_within_group')
+                          for flag in [False, True]]
+                groups = [g for g in groups if len(g)]
+                #share the budget out, giving any remainder to the larger group
+                base = pegRNAs_per_mut // len(groups)
+                extra = pegRNAs_per_mut - base*len(groups)
+                order = sorted(range(len(groups)), key=lambda i: -len(groups[i]))
+                quota = [base]*len(groups)
+                for i in order[:extra]:
+                    quota[i] += 1
+                #a group with fewer designs than its quota releases the slack
+                for _ in range(len(groups)):
+                    spare = sum(max(0, q-len(g)) for q, g in zip(quota, groups))
+                    if not spare:
+                        break
+                    quota = [min(q, len(g)) for q, g in zip(quota, groups)]
+                    for i in order:
+                        room = len(groups[i]) - quota[i]
+                        take = min(room, spare)
+                        quota[i] += take
+                        spare -= take
+                        if not spare:
+                            break
+                for q, g in zip(quota, groups):
+                    keep_idx.extend(g.index[:q])
+            peg_df = peg_df.loc[sorted(keep_idx)]
 
     #create sensor if desired
     if sensor == True:

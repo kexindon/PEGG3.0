@@ -10,11 +10,26 @@
    :width: 200px
    :height: 200px
 
-`This is PEGG 3.0. For the original PEGG 2.0 documentation, click here <https://pegg.readthedocs.io/en/latest/>`_
+`This is PEGG 3.1. For the original PEGG 2.0 documentation, click here <https://pegg.readthedocs.io/en/latest/>`_
 ******************************************************************************************************************
 
-`Click here to read the Nature Biotechnology article <https://www.nature.com/articles/s41587-024-02172-9>`_ 
+`Click here to read the Nature Biotechnology article <https://www.nature.com/articles/s41587-024-02172-9>`_
 ******************************************************************************************************************
+
+.. warning::
+   **Version 3.1 fixes a silent bug affecting silent bystanders on indels.**
+
+   **Who is affected:** users of version 3.0 or 3.0.1 who designed pegRNAs with ``silent_bystander=True`` for
+   **insertions or deletions** (INS, DEL, INDEL). Substitutions (SNP, DNP, ONP) were **never** affected, and
+   neither were in-frame indels whose length change is a multiple of 3.
+
+   **What went wrong:** the reading-frame anchor was walked back by the length of the RTT rather than the number of
+   reference bases it spans. On an indel read on the opposite strand these differ, shifting the frame by
+   ``(ref_len - alt_len) % 3``. Bystanders that were supposed to be synonymous could be non-synonymous, and
+   **no error was raised** -- the shifted frame was self-consistent, so the internal translation check passed.
+
+   **What to do:** if you generated a library under those conditions, regenerate the affected designs with version
+   3.1. Ordinary pegRNA design (``silent_bystander=False``) was never affected.
 
 PEGG is a python package that designs prime editing guide RNAs (pegRNAs) and base editing guide RNAs (gRNAs) for use in precision genome editing.
 Unlike the existing, web-based programs for pegRNA design, PEGG is suitable for designing thousands of pegRNAs at once, giving users the ability to design entire libraries of pegRNAs
@@ -48,6 +63,12 @@ identical to version 2.0.
 The synonymous mutation logic is informed by the silent bystander design approach in
 `PRIDICT2.0 <https://github.com/uzh-dqbm-cmi/PRIDICT2>`_ (Mathis et al., Nature Protocols 2025).
 
+Version 3.1 adds optional pegRNA scoring with `OptiPrime <https://github.com/alvin-hsu/optiprime-src>`_
+(Hsu et al., Nature Biotechnology 2026), a model trained on large-scale measured prime editing outcomes that
+explicitly accounts for mismatch repair. **We recommend it for library design**: PEGG's built-in ``PEGG2_Score``
+is hand-weighted rather than fitted to data. OptiPrime installs separately and the only cost is runtime; see
+:doc:`optiprime`. Version 3.1 also fixes the indel reading-frame bug described above.
+
 Installation
 **************
 PEGG is available through the python package index. To install, use pip: 
@@ -74,6 +95,7 @@ A version without this package and its functionality is available for local pip 
    :caption: Contents:
 
    quickstart
+   optiprime
    jupyter_tutorial
    PEGG
    about

@@ -3,8 +3,24 @@
 `Link to PEGG2.0 <https://github.com/samgould2/PEGG2.0>`_
 **************************************************************************************************************
 
-Version 3.0 (Original version released Sept. 2023; Version 2.0 updated Mar. 2024; Version 3.0 updated Aug. 2026)
-****************************************************************************************************************
+Version 3.1 (Original version released Sept. 2023; Version 2.0 updated Mar. 2024; Version 3.0 updated Aug. 2026; Version 3.1 updated Sept. 2026)
+************************************************************************************************************************************************
+
+.. warning::
+   **Version 3.1 fixes a silent bug affecting silent bystanders on indels.**
+
+   **Who is affected:** users of version 3.0 or 3.0.1 who designed pegRNAs with ``silent_bystander=True`` for
+   **insertions or deletions** (INS, DEL, INDEL). Substitutions (SNP, DNP, ONP) were **never** affected, and neither
+   were in-frame indels whose length change is a multiple of 3.
+
+   **What went wrong:** the reading-frame anchor was walked back by the length of the RTT rather than the number of
+   reference bases it spans. On an indel read on the opposite strand these differ, shifting the frame by
+   ``(ref_len - alt_len) % 3``. Bystanders that were supposed to be synonymous could be non-synonymous, and **no
+   error was raised** -- the shifted frame was self-consistent, so the internal translation check passed.
+
+   **What to do:** if you generated a library under those conditions, regenerate the affected designs with version
+   3.1. Ordinary pegRNA design (``silent_bystander=False``) was never affected.
+
 .. |PEGG| image:: https://raw.githubusercontent.com/kexindon/PEGG3.0/main/docs/PEGG_3.png
    :width: 200px
    :height: 200px
@@ -137,6 +153,85 @@ established simply get no bystanders.
 
 All variant types are supported (SNP, DNP, TNP, ONP, INS, DEL, INDEL).
 
+OptiPrime scoring
+------------------
+
+New in version 3.1, and off by default. PEGG can rank pegRNAs with
+`OptiPrime <https://github.com/alvin-hsu/optiprime-src>`_ (Hsu et al., Nature Biotechnology 2026) instead of its
+own ``PEGG2_Score``.
+
+**We recommend using OptiPrime for library design.** ``PEGG2_Score`` is a hand-weighted combination of design
+features -- GC content, PAM disruption, homology arm length. It is fast and needs no extra installation, but the
+weights were chosen by hand rather than fitted to data. OptiPrime is a machine learning model trained on
+large-scale measured prime editing outcomes, and it explicitly models mismatch repair (MMR), which is often what
+decides whether an edit is installed at all. For a library you intend to order and screen, that difference is
+worth the extra setup.
+
+**The only cost is runtime.** On an 8-core CPU laptop, scoring costs roughly **14 seconds of fixed start-up plus
+~0.1 seconds per pegRNA**, i.e.
+
+.. code-block:: text
+
+   total seconds  ~=  14  +  0.1 x (number of pegRNAs scored)
+
+so about 15--20 minutes for a 10,000-pegRNA library on one core, and substantially less on a GPU. By default PEGG
+only scores the top ``pegRNAs_per_mut x 4`` candidates per mutation (``optiprime_prefilter``), which keeps this
+bounded; lower it if a run is taking too long.
+
+**Installation is separate.** OptiPrime needs JAX, which requires ``numpy>=2`` and Python 3.11+, while PEGG pins
+``numpy<2`` on Python 3.9/3.10 for its pickled scoring models. The two cannot share an environment, so PEGG runs
+OptiPrime in a subprocess against its own interpreter. The
+`OptiPrime documentation page <https://pegg30.readthedocs.io/en/latest/optiprime.html>`_ has the full recipe with
+verified version pins.
+
+.. code-block:: python
+
+   import os
+   os.environ['OPTIPRIME_SRC']    = os.path.expanduser('~/optiprime/src')
+   os.environ['OPTIPRIME_PYTHON'] = os.path.expanduser('~/optiprime/env/bin/python')
+
+   from pegg import prime, optiprime
+
+   assert optiprime.optiprime_available()
+
+   peg_df = prime.run(mutations, 'PrimeDesign', None,
+                      pegRNAs_per_mut=10,
+                      optiprime=True,
+                      optiprime_group='Liu_HeLa',   # MMR-proficient
+                      rankby='OptiPrime_Score')
+
+This adds ``OptiPrime_Score`` (predicted efficiency, higher is better) and ``OptiPrime_error`` (why a pegRNA was
+not scored, or ``NaN``). Scoring never fails silently.
+
+**The cell line encodes MMR status.** The same pegRNA can score 0.174 under ``Liu_HeLa`` and 0.407 under
+``Liu_HEK293T``: HEK293T is partially MMR-deficient, HeLa is MMR-proficient. Designs optimised on HeLa generally
+transfer to MMR-deficient lines, but not the other way round, so ``Liu_HeLa`` is the default and the conservative
+choice.
+
+A complete runnable example is in `optiprime_example.ipynb <./optiprime_example.ipynb>`_.
+
+
+Version 3.1 change summary
+****************************
+
+**Silent bystanders on indels are now correct.** See the warning at the top of this README. The reading-frame
+anchor on the reverse strand now accounts for the genomic span of the RTT rather than its length, so bystanders are
+synonymous for insertions and deletions as well as substitutions. Substitutions are unaffected and produce
+byte-identical output to 3.0.
+
+**New: OptiPrime scoring**, described above. Optional, off by default, and additive -- no existing column changes.
+
+**New module** ``pegg.optiprime``, plus new ``prime.run()`` parameters: ``optiprime``, ``optiprime_cutoff``,
+``optiprime_group``, ``optiprime_src``, ``optiprime_python``, ``optiprime_prefilter``, ``optiprime_jobs``,
+``cap_total_per_mut``.
+
+**New output columns**, 2 added, none removed or renamed: ``OptiPrime_Score``, ``OptiPrime_error``.
+
+**Also fixed:** OptiPrime scoring crashed on insertions with short RTTs. The sequence PEGG passes for the unedited
+allele is truncated to ``25 + RTT_length``, which on an insertion is shorter than the edited allele; when that fell
+below 30 nt an assertion inside the scoring worker killed the entire shard, losing every pegRNA scored alongside
+it. PEGG now passes the 30-mer explicitly. Deletions and substitutions were not affected.
+
 
 Version 3.0 change summary
 ****************************
@@ -180,3 +275,7 @@ rather than falling through.
 PEGG is an open source python package. If you use PEGG, please cite it using the following citation:
 
 Gould, S.I., Wuest, A.N., Dong, K. et al. High-throughput evaluation of genetic variants with prime editing sensor libraries. Nat Biotechnol (2024). https://doi.org/10.1038/s41587-024-02172-9
+
+If you use **OptiPrime scoring**, please also cite OptiPrime:
+
+Hsu, A. et al. Massively parallel measurement of prime editing outcomes enables predictive modelling of pegRNA efficiency. Nat Biotechnol (2026). https://doi.org/10.1038/s41587-026-03261-7

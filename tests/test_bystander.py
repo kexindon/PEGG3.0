@@ -121,7 +121,13 @@ def run_case(label, ts, ps, ref_len, alt_len, verbose=True):
         work_phase = FWD_PHASE_OF_WORK_START
     else:
         frame_arg = REV_FRAME_OF_RTT_START
-        work_phase = REV_PHASE_OF_WORK_START
+        #The transcript reads the RTT backwards ALONG THE CHROMOSOME, so the
+        #walk-back from the RTT's last base to its first covers the reference
+        #bases it spans, not its own length. Those differ on an indel, so the
+        #expected phase is derived per case rather than fixed; deriving it here
+        #independently of reverse_frame_anchor() keeps this an external check.
+        span = len(RTT) + ref_len - alt_len
+        work_phase = (REV_FRAME_OF_RTT_START - (span - 1)) % 3
 
     opts = by.silent_bystanders(
         RTT, EDIT_OFFSET, ref_len, alt_len, ts, ps, frame_arg,
@@ -174,6 +180,58 @@ def test_reverse_frame_anchor():
     for L in range(4, 40):
         same = [by.reverse_frame_anchor(f, L) == f for f in (0, 1, 2)]
         assert all(same) == ((L - 1) % 3 == 0), 'L=%d' % L
+
+
+def test_indel_anchor_uses_genomic_span():
+    """
+    On the opposite strand the frame anchor must walk back over the REFERENCE
+    bases the RTT spans, not over the RTT's own length. The two differ by
+    (ref_len - alt_len) on every indel.
+
+    This is the Ppm1d N505Tfs*2 case from the CH/AML library, reduced to its
+    geometry: an 11 nt RTT carrying a 1 nt deletion, transcript on '+', PAM on
+    '-'. GENCODE vM33 puts the first base of the forward RTT at codon phase 2,
+    so the codons are read from forward offset 1. Before the fix the anchor was
+    computed from L alone, came out one base off, and the search returned seven
+    options that were synonymous in the shifted frame -- among them
+    CACGGCCCAAA, which is ATG->ACG (Met->Thr) and GAC->GCC (Asp->Ala) in the
+    real frame. The internal translation check could not see this, because a
+    shifted anchor is self-consistent.
+    """
+    plain_fwd = 'CATGGACCAAA'          #forward RTT, deletion already applied
+    L = len(plain_fwd)
+    RTT_pam = str(Bio.Seq.Seq(plain_fwd).reverse_complement())
+
+    #phase of RTT_pam[0], i.e. of the LAST forward base, from the annotation
+    frame0 = 1
+
+    opts = by.silent_bystanders(RTT_pam, 3, 1, 0, '+', '-', frame0,
+                                window_nt=5, max_muts=10 ** 6,
+                                max_candidates=None)
+
+    #true frame: phase(forward offset 0) == 2, so codons start at offset 1
+    first_codon = 1
+    non_synonymous = []
+    for opt in opts:
+        fwd = str(Bio.Seq.Seq(opt['RTT']).reverse_complement())
+        for cs in range(first_codon, len(fwd) - 2, 3):
+            if str(Bio.Seq.Seq(plain_fwd[cs:cs + 3]).translate()) != \
+               str(Bio.Seq.Seq(fwd[cs:cs + 3]).translate()):
+                non_synonymous.append(fwd)
+                break
+
+    assert not non_synonymous, \
+        'non-synonymous options in the true frame: %s' % non_synonymous
+    assert 'CACGGCCCAAA' not in {
+        str(Bio.Seq.Seq(o['RTT']).reverse_complement()) for o in opts}, \
+        'the known-bad Ppm1d option came back'
+
+    #and the anchor helper itself must account for the span
+    assert by.reverse_frame_anchor(1, L) == 0                      #contiguous
+    assert by.reverse_frame_anchor(1, L, genomic_span=L + 1) == 2  #1 nt deleted
+
+    print('  indel anchor uses genomic span      OK (%d options, 0 bad)'
+          % len(opts))
     print('  reverse_frame_anchor                OK')
 
 
@@ -207,7 +265,7 @@ def test_wrong_anchor_is_not_caught_internally():
     mistakes the internal check for protection it does not provide.
     """
     original = by.reverse_frame_anchor
-    by.reverse_frame_anchor = lambda f, L: f      # the original bug
+    by.reverse_frame_anchor = lambda f, L, genomic_span=None: f   # the original bug
     try:
         opts = by.silent_bystanders(RTT, EDIT_OFFSET, 1, 1, '-', '+',
                                     REV_FRAME_OF_RTT_START,
@@ -456,6 +514,7 @@ if __name__ == '__main__':
     print()
     print('regression tests:')
     test_reverse_frame_anchor()
+    test_indel_anchor_uses_genomic_span()
     test_deletion_seam_protected()
     test_wrong_anchor_is_not_caught_internally()
     test_no_duplicate_rtts()

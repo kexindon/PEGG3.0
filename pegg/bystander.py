@@ -307,7 +307,7 @@ def position_is_safe(genomic_position, frame_map, boundaries, splice_buffer=3):
 
 #--- silent bystander search ---------
 
-def reverse_frame_anchor(frame_of_RTT_start, RTT_length):
+def reverse_frame_anchor(frame_of_RTT_start, RTT_length, genomic_span=None):
     """
     Translates a reading-frame anchor from the PAM strand to the reverse
     complement. Returns the codon phase of the first base of
@@ -337,8 +337,23 @@ def reverse_frame_anchor(frame_of_RTT_start, RTT_length):
         *type = int*
 
         Length of the RTT in nt.
+
+    genomic_span
+        *type = int or None*
+
+        Number of REFERENCE bases the RTT spans, i.e. RTT_length + ref_len -
+        alt_len. The walk-back from the RTT's last base to its first steps along
+        the chromosome, so on an indel it must cross the reference bases the RTT
+        does not carry (a deletion) or skip the inserted ones it does (an
+        insertion). Passing RTT_length here -- or leaving it None, which is the
+        same thing -- shifts the anchor by (ref_len - alt_len) % 3 on every
+        indel whose RTT is read on the opposite strand, and a shifted anchor is
+        self-consistent: the options it yields pass the internal translation
+        check while being non-synonymous in the real frame. Default = None,
+        which is correct for substitutions.
     """
-    return (frame_of_RTT_start - (RTT_length - 1)) % 3
+    span = RTT_length if genomic_span is None else genomic_span
+    return (frame_of_RTT_start - (span - 1)) % 3
 
 
 def _exon_window(RTT_genomic_positions, exon_blocks, anchor_lo, anchor_hi,
@@ -523,7 +538,12 @@ def silent_bystanders(RTT_fwd, left_RTT_len, ref_len, alt_len,
         frame_offset = frame_of_RTT_start
     else:
         work_seq = str(Bio.Seq.Seq(RTT_fwd).reverse_complement())
-        frame_offset = reverse_frame_anchor(frame_of_RTT_start, L)
+        #The walk-back runs along the chromosome, so it spans the REFERENCE
+        #bases the RTT covers (L + ref_len - alt_len), not the RTT's own length.
+        #They differ on every indel, and getting this wrong shifts the whole
+        #reading frame; see reverse_frame_anchor().
+        frame_offset = reverse_frame_anchor(frame_of_RTT_start, L,
+                                            genomic_span=L + ref_len - alt_len)
 
     def to_work(offset, length=1):
         """Offset in RTT_fwd -> offset in work_seq."""
